@@ -22,8 +22,8 @@ public strictfp class RobotPlayer {
 
         switch (rc.getType()) {
             case ENLIGHTENMENT_CENTER: me = new EnlightenmentCenter(rc); break;
-            case POLITICIAN:           me = new Politician(rc);          break;
-            case SLANDERER:            me = new Slanderer(rc);           break;
+            case POLITICIAN:           me = new SlanPol(rc);             break;
+            case SLANDERER:            me = new SlanPol(rc);             break;
             case MUCKRAKER:            me = new Muckraker(rc);           break;
         }
 
@@ -35,7 +35,7 @@ public strictfp class RobotPlayer {
             turnCount += 1;
             // Try/catch blocks stop unhandled exceptions, which cause your robot to freeze
             try {
-                System.out.println("I'm a " + rc.getType() + "! Location " + rc.getLocation());
+                // System.out.println("I'm a " + rc.getType() + "! Location " + rc.getLocation());
 
                 me.runRobotTurn();
 
