@@ -44,6 +44,11 @@ abstract public strictfp class Robot {
     abstract public void runTurn() throws GameActionException;
 
 
+    public double recipDecay(final double x, final double half_life) {
+        return half_life / (x + half_life);
+    }
+
+
 
     /**
      * Returns a random Direction.
