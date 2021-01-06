@@ -34,3 +34,6 @@ BUT THIS WORKED:
 Run the export command above then run:
 
 `open client/Battlecode\ Client.app/`
+
+
+The bot must be named tannerplayer.
