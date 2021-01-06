@@ -5,6 +5,7 @@ import battlecode.common.*;
 abstract public strictfp class Robot {
     RobotController rc;
     int roundNumCreated = -1;
+    int last_round_conviction = 0;
 
     static final RobotType[] spawnableRobot = {
         RobotType.POLITICIAN,
@@ -26,10 +27,19 @@ abstract public strictfp class Robot {
     Robot(RobotController rbt_controller) {
         rc = rbt_controller;
         roundNumCreated = rc.getRoundNum();
+        last_round_conviction = rc.getConviction();
+    }
+
+    public void afterRunTurn() {
+        last_round_conviction = rc.getConviction();
     }
 
     public void runRobotTurn() throws GameActionException {
+        if(rc.getConviction() < last_round_conviction) {
+            System.out.println("Location:" + rc.getLocation().toString() + "  Conviction:" + String.valueOf(rc.getConviction()) + "  last_round_conviction:" + String.valueOf(last_round_conviction));
+        }
         runTurn();
+        afterRunTurn();
     }
     abstract public void runTurn() throws GameActionException;
 
