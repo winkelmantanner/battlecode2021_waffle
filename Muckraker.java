@@ -20,7 +20,6 @@ public strictfp class Muckraker extends Unit {
                 }
             }
         }
-        if (tryMove(randomDirection()))
-            System.out.println("I moved!");
+        if (tryMove(randomDirection())) {}
     }
 }

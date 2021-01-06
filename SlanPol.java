@@ -14,12 +14,14 @@ public strictfp class SlanPol extends Unit {
         int actionRadius = rc.getType().actionRadiusSquared;
         RobotInfo[] attackable = rc.senseNearbyRobots(actionRadius, enemy);
         if (attackable.length != 0 && rc.canEmpower(actionRadius)) {
-            System.out.println("empowering...");
+            System.out.println("empowering  my conviction:" + String.valueOf(rc.getConviction()));
             rc.empower(actionRadius);
-            System.out.println("empowered");
             return;
         }
         if (tryMove(randomDirection())) {}
+        // if(rc.getRoundNum() == 1950) {
+        //     System.out.println("my conviction:" + String.valueOf(rc.getConviction()));
+        // }
     }
     public void runTurnSlanderer() throws GameActionException {
         if (tryMove(randomDirection())) {}
