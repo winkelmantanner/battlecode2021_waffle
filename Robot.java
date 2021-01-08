@@ -30,14 +30,22 @@ abstract public strictfp class Robot {
         last_round_conviction = rc.getConviction();
     }
 
+    public int roundNumAtStartOfRound = -1;
+    public void beforeRunTurn() {
+        roundNumAtStartOfRound = rc.getRoundNum();
+        if(rc.getConviction() != last_round_conviction) {
+            System.out.println("conviction changed Location:" + rc.getLocation().toString() + "  Conviction:" + String.valueOf(rc.getConviction()) + "  last_round_conviction:" + String.valueOf(last_round_conviction));
+        }
+    }
     public void afterRunTurn() {
         last_round_conviction = rc.getConviction();
+        if(rc.getRoundNum() != roundNumAtStartOfRound) {
+            System.out.println("roundNum increased from " + String.valueOf(roundNumAtStartOfRound) + " to " + rc.getRoundNum());
+        }
     }
 
     public void runRobotTurn() throws GameActionException {
-        if(rc.getConviction() < last_round_conviction) {
-            System.out.println("Location:" + rc.getLocation().toString() + "  Conviction:" + String.valueOf(rc.getConviction()) + "  last_round_conviction:" + String.valueOf(last_round_conviction));
-        }
+        beforeRunTurn();
         runTurn();
         afterRunTurn();
     }
