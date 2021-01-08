@@ -9,7 +9,11 @@ abstract public strictfp class Unit extends Robot {
     Unit(RobotController rbt_controller) {
         super(rbt_controller);
         rc = rbt_controller;
-        preferRotateRight = Math.random() < 0.5;
+
+        preferRotateRight = (rc.getID() % 2 == 1);
+        // preferRotateRight == unit ID is odd
+        // I used the unit ID because Math.random() returns the same value for different units.
+
         System.out.println("I prefer to rotate " + (preferRotateRight ? "right" : "left"));
     }
 
