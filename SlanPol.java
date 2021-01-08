@@ -42,6 +42,30 @@ public strictfp class SlanPol extends Unit {
                     rc.empower(actionR2);
                 }
             }
+
+            if(rc.isReady()) {
+                int dist2_to_nearest_target = 12345;
+                RobotInfo target_rbt = null;
+                RobotInfo [] rbts = rc.senseNearbyRobots(rc.getType().sensorRadiusSquared);
+                for(RobotInfo rbt : rbts) {
+                    if(
+                        (
+                            rbt.type.equals(RobotType.ENLIGHTENMENT_CENTER)
+                            || rbt.type.equals(RobotType.MUCKRAKER)
+                        )
+                        && !rbt.team.equals(rc.getTeam())
+                        && myLoc.distanceSquaredTo(rbt.location) < dist2_to_nearest_target
+                    ) {
+                        target_rbt = rbt;
+                        dist2_to_nearest_target = myLoc.distanceSquaredTo(rbt.location);
+                    }
+                }
+                if(target_rbt != null) {
+                    if(fuzzyStep(target_rbt.location)) {
+                        System.out.println("I (politician) stepped toward " + target_rbt.location.toString());
+                    }
+                }
+            }
         }
         if(tryMove(randomDirection())) {
             round_of_last_move = rc.getRoundNum();
