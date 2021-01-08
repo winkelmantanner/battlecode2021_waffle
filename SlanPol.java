@@ -63,11 +63,13 @@ public strictfp class SlanPol extends Unit {
                 if(target_rbt != null) {
                     if(fuzzyStep(target_rbt.location)) {
                         System.out.println("I (politician) stepped toward " + target_rbt.location.toString());
+                    } else {
+                        System.out.println("I (politician) failed to step toward " + target_rbt.location.toString());
                     }
                 }
             }
         }
-        if(tryMove(randomDirection())) {
+        if(exploreMove()) {
             round_of_last_move = rc.getRoundNum();
         }
     }
