@@ -47,6 +47,6 @@ public strictfp class Muckraker extends Unit {
             System.out.println("I (muckraker) stepped toward target: " + where_i_saw_enemy_slanderer.toString());
         }
 
-        tryMove(randomDirection());
+        exploreMove();
     }
 }

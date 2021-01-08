@@ -17,9 +17,9 @@ abstract public strictfp class Unit extends Robot {
         System.out.println("I prefer to rotate " + (preferRotateRight ? "right" : "left"));
     }
 
-    boolean fuzzyStep(MapLocation dest) throws GameActionException {
+    boolean fuzzyStep(Direction target_dir) throws GameActionException {
         boolean moved = false;
-        Direction dir = rc.getLocation().directionTo(dest);
+        Direction dir = target_dir;
         for(int k = 0; k < 8; k++) {
             if(rc.canMove(dir)) {
                 rc.move(dir);
@@ -28,13 +28,35 @@ abstract public strictfp class Unit extends Robot {
             }
             if(preferRotateRight ^ (k % 2 > 0)) {
                 for(int j = 0; j < k; j++) {
-                    dir.rotateLeft();
+                    dir = dir.rotateLeft();
                 }
             } else {
                 for(int j = 0; j < k; j++) {
-                    dir.rotateRight();
+                    dir = dir.rotateRight();
                 }
             }
+        }
+        return moved;
+    }
+    boolean fuzzyStep(MapLocation dest) throws GameActionException {
+        return fuzzyStep(rc.getLocation().directionTo(dest));
+    }
+
+    Direction explore_dir = null;
+    boolean need_dir = true;
+    boolean exploreMove() throws GameActionException {
+        if(need_dir) {
+            explore_dir = randomDirection();
+            System.out.println("GOT NEW DIR:" + explore_dir.toString());
+            need_dir = false;
+        }
+        boolean moved = false;
+        if(rc.canMove(explore_dir)) {
+            rc.move(explore_dir);
+            moved = true;
+        } else if(rc.isReady()) {
+            need_dir = true;
+            System.out.println("NEED DIR");
         }
         return moved;
     }
