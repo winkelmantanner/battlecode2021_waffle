@@ -19,14 +19,12 @@ public strictfp class EnlightenmentCenter extends Robot {
     public RobotType getWhichTypeToBuild() {
         double randomNumber = Math.random();
         RobotType returnable = null;
-        if(randomNumber < 0.1) {
+        if(randomNumber < 0.2) {
             returnable = RobotType.MUCKRAKER;
+        } else if(randomNumber < 0.7) {
+            returnable = RobotType.POLITICIAN;
         } else {
-            if(randomNumber < 1 - ((double) rc.getRoundNum()) / GameConstants.GAME_MAX_NUMBER_OF_ROUNDS) {
-                returnable = RobotType.SLANDERER;
-            } else {
-                returnable = RobotType.POLITICIAN;
-            }
+            returnable = RobotType.SLANDERER;
         }
         return returnable;
     }
