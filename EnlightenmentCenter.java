@@ -54,6 +54,15 @@ public strictfp class EnlightenmentCenter extends Robot {
         return are_all_4_cardinals_occupied;
     }
 
+    double square(final double x) {return x*x;}
+    double getMaxFractionOfInfluenceToBid() {
+        // Bid up to all influence at the end but almost none at the beginning
+        return square(square(square(
+            ((double)rc.getRoundNum())
+            / GameConstants.GAME_MAX_NUMBER_OF_ROUNDS
+        )));
+    }
+
     final int OPTIMAL_SLANDERER_INFLUENCE = 21; // https://www.desmos.com/calculator/ydkbaqrx7v
     final int STANDARD_UNIT_INFLUENCE = 50;
     public void runTurn() throws GameActionException {
@@ -99,7 +108,11 @@ public strictfp class EnlightenmentCenter extends Robot {
         }
         i_bidded_last_round = false;
         if(i_should_bid) {
-            int amount = (int) (Math.random() * rc.getInfluence() / 20);
+            int amount = (int) (
+                Math.random()
+                * rc.getInfluence()
+                * getMaxFractionOfInfluenceToBid()
+            );
             if(rc.canBid(amount)) {
                 rc.bid(amount);
                 i_bidded_last_round = true;
