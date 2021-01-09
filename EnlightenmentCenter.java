@@ -16,26 +16,74 @@ public strictfp class EnlightenmentCenter extends Robot {
         super(rbt_controller);
         rc = rbt_controller;
     }
-    public RobotType getWhichTypeToBuild() {
-        double randomNumber = Math.random();
-        RobotType returnable = null;
-        if(randomNumber < 0.2) {
-            returnable = RobotType.MUCKRAKER;
-        } else if(randomNumber < 0.7) {
-            returnable = RobotType.POLITICIAN;
-        } else {
-            returnable = RobotType.SLANDERER;
+
+    boolean myBuild(final RobotType type, final int influence, final Direction [] dirs) throws GameActionException {
+        double max_passability = 0;
+        Direction best_build_dir = null;
+        for(Direction d : dirs) {
+            if(rc.canBuildRobot(type, d, influence)) {
+                MapLocation ml = rc.adjacentLocation(d);
+                double p = rc.sensePassability(ml);
+                if(p > max_passability) {
+                    max_passability = p;
+                    best_build_dir = d;
+                }
+            }
         }
-        return returnable;
+        boolean built = false;
+        if(best_build_dir != null) {
+            rc.buildRobot(type, best_build_dir, influence);
+            numRobotsBuilt++;
+            built = true;
+        }
+        return built;
     }
+
+    boolean getIfAll4CardinalDirectionsAreOccupied() throws GameActionException {
+        boolean are_all_4_cardinals_occupied = true;
+        for(Direction card_dir : Direction.cardinalDirections()) {
+            MapLocation ml = rc.adjacentLocation(card_dir);
+            if(
+                rc.canDetectLocation(ml)
+                && !rc.isLocationOccupied(ml)
+            ) {
+                are_all_4_cardinals_occupied = false;
+                break;
+            }
+        }
+        return are_all_4_cardinals_occupied;
+    }
+
+    final int OPTIMAL_SLANDERER_INFLUENCE = 21; // https://www.desmos.com/calculator/ydkbaqrx7v
+    final int STANDARD_UNIT_INFLUENCE = 50;
     public void runTurn() throws GameActionException {
-        RobotType toBuild = getWhichTypeToBuild();
-        int influence = 50;
-        for (Direction dir : directions) {
-            if (rc.canBuildRobot(toBuild, dir, influence)) {
-                System.out.println("Building " + toBuild.toString() + " to the " + dir.toString());
-                rc.buildRobot(toBuild, dir, influence);
-                numRobotsBuilt++;
+        //At the very beginning, build a few slanderers
+        if(rc.getRoundNum() <= 3) {
+            myBuild(
+                RobotType.SLANDERER,
+                OPTIMAL_SLANDERER_INFLUENCE,
+                diagonal_directions
+            );
+        } else if(!getIfAll4CardinalDirectionsAreOccupied()) {
+            // Make sure we have the basic shield of muckrakers
+            myBuild(
+                RobotType.MUCKRAKER,
+                1,
+                Direction.cardinalDirections()
+            );
+        } else if(rc.getInfluence() > STANDARD_UNIT_INFLUENCE) {
+            if(Math.random() < 0.9) {
+                myBuild(
+                    RobotType.MUCKRAKER,
+                    1,
+                    directions
+                );
+            } else {
+                myBuild(
+                    RobotType.POLITICIAN,
+                    STANDARD_UNIT_INFLUENCE,
+                    directions
+                );
             }
         }
 
