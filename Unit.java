@@ -30,13 +30,6 @@ abstract public strictfp class Unit extends Robot {
         result <<= 8;
         result |= y;
 
-        // System.out.print("flipped flag:");
-        // int test = result;
-        // for(int k = 0; k < 32; k++) {
-        //     System.out.print(String.valueOf(test & 1));
-        //     test >>= 1;
-        // }
-        // System.out.println("");
         return result;
     }
 
@@ -51,16 +44,21 @@ abstract public strictfp class Unit extends Robot {
         )) {
             neutral_ec = rbt;
         }
-        if(rc.getRoundNum() > 600) {
+        if(rc.getRoundNum() > 500) {
             rc.resign();
+        }
+        if(20 < rc.getRoundNum() - round_when_i_last_set_my_flag) {
+            // Because trySetFlag sets round_when_i_last_set_my_flag, this runs once per 20 rounds
+            if(trySetFlag(0)) {
+                System.out.println("(Unit) set my flag to 0");
+            }
         }
         if(neutral_ec != null) {
             int value_for_flag = getValueForFlag(
                 NEUTRAL_EC,
                 neutral_ec.location
             );
-            if(rc.canSetFlag(value_for_flag)) {
-                rc.setFlag(value_for_flag);
+            if(trySetFlag(value_for_flag)) {
                 did_set_flag = true;
                 System.out.println("Set flag to " + String.valueOf(value_for_flag));
             } else {
