@@ -3,6 +3,7 @@ import battlecode.common.*;
 
 public strictfp class EnlightenmentCenter extends Robot {
     int numRobotsBuilt = 0;
+    int [] robots_i_built = new int[GameConstants.MAP_MAX_WIDTH * GameConstants.MAP_MAX_HEIGHT];
 
     // This does not get initialized.
     // Use it to determine if other friendly ECs are bidding.
@@ -13,6 +14,40 @@ public strictfp class EnlightenmentCenter extends Robot {
 
     EnlightenmentCenter(RobotController rbt_controller) {
         super(rbt_controller);
+    }
+
+    int current_built_robot_array_index = 0;
+    void doFlagStuff() throws GameActionException {
+        if(20 < rc.getRoundNum() - round_when_i_last_set_my_flag) {
+            // Because trySetFlag sets round_when_i_last_set_my_flag, this runs once per 20 rounds
+            if(trySetFlag(0)) {
+                System.out.println("set my flag to 0");
+            }
+        }
+        while(
+            current_built_robot_array_index < numRobotsBuilt
+            && Clock.getBytecodesLeft() > 1000
+            && rc.getRoundNum() != round_when_i_last_set_my_flag
+        ) {
+            int target_robot_id = robots_i_built[current_built_robot_array_index];
+            if(rc.canGetFlag(target_robot_id)) {
+                int flag_val = rc.getFlag(target_robot_id);
+                if(flag_val != 0) {
+                    if(trySetFlag(flag_val)) {
+                        System.out.println("Set flag to flag of robot with id " + String.valueOf(target_robot_id) + " value:" + String.valueOf(flag_val));
+                        // Because trySetFlag sets round_when_i_last_set_my_flag,
+                        //   the loop will exit after this iteration.
+                        // The ++ statement at the end needs to execute still.
+                    }
+                }
+            } else {
+                System.out.println("Could not get flag of robot with id " + String.valueOf(target_robot_id));
+            }
+            current_built_robot_array_index++;
+        }
+        if(current_built_robot_array_index >= numRobotsBuilt) {
+            current_built_robot_array_index = 0;
+        }
     }
 
     boolean myBuild(final RobotType type, final int influence, final Direction [] dirs) throws GameActionException {
@@ -31,8 +66,9 @@ public strictfp class EnlightenmentCenter extends Robot {
         boolean built = false;
         if(best_build_dir != null) {
             rc.buildRobot(type, best_build_dir, influence);
-            System.out.println(String.valueOf(rc.senseRobotAtLocation(rc.adjacentLocation(best_build_dir)).ID));
+            robots_i_built[numRobotsBuilt] = rc.senseRobotAtLocation(rc.adjacentLocation(best_build_dir)).ID;
             numRobotsBuilt++;
+            System.out.println("BUILT");
             built = true;
         }
         return built;
@@ -110,5 +146,8 @@ public strictfp class EnlightenmentCenter extends Robot {
             // That is how it sees if other friendly ECs are bidding.
         }
         last_round_team_votes = rc.getTeamVotes();
+
+        // This needs to be last since it goes until the bytecode limit is hit
+        doFlagStuff();
     }
 }

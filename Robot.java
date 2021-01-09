@@ -65,6 +65,17 @@ abstract public strictfp class Robot {
         return half_life / (x + half_life);
     }
 
+    int round_when_i_last_set_my_flag = -1;
+    public boolean trySetFlag(final int flag_val) throws GameActionException {
+        boolean did_set_flag = false;
+        if(rc.canSetFlag(flag_val)) {
+            rc.setFlag(flag_val);
+            did_set_flag = true;
+            round_when_i_last_set_my_flag = rc.getRoundNum();
+        }
+        return did_set_flag;
+    }
+
 
 
     /**
