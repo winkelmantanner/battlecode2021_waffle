@@ -44,9 +44,6 @@ abstract public strictfp class Unit extends Robot {
         )) {
             neutral_ec = rbt;
         }
-        if(rc.getRoundNum() > 500) {
-            rc.resign();
-        }
         if(20 < rc.getRoundNum() - round_when_i_last_set_my_flag) {
             // Because trySetFlag sets round_when_i_last_set_my_flag, this runs once per 20 rounds
             if(trySetFlag(0)) {
