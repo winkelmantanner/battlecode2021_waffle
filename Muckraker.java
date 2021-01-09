@@ -2,12 +2,10 @@ package tannerplayer;
 import battlecode.common.*;
 
 public strictfp class Muckraker extends Unit {
-    RobotController rc;
     MapLocation where_i_saw_enemy_slanderer = null;
     int round_when_i_saw_enemy_slanderer = -1;
     Muckraker(RobotController rbt_controller) {
         super(rbt_controller);
-        rc = rbt_controller;
     }
 
 

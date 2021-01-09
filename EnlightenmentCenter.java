@@ -2,7 +2,6 @@ package tannerplayer;
 import battlecode.common.*;
 
 public strictfp class EnlightenmentCenter extends Robot {
-    RobotController rc;
     int numRobotsBuilt = 0;
 
     // This does not get initialized.
@@ -14,7 +13,6 @@ public strictfp class EnlightenmentCenter extends Robot {
 
     EnlightenmentCenter(RobotController rbt_controller) {
         super(rbt_controller);
-        rc = rbt_controller;
     }
 
     boolean myBuild(final RobotType type, final int influence, final Direction [] dirs) throws GameActionException {
@@ -33,6 +31,7 @@ public strictfp class EnlightenmentCenter extends Robot {
         boolean built = false;
         if(best_build_dir != null) {
             rc.buildRobot(type, best_build_dir, influence);
+            System.out.println(String.valueOf(rc.senseRobotAtLocation(rc.adjacentLocation(best_build_dir)).ID));
             numRobotsBuilt++;
             built = true;
         }
