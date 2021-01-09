@@ -2,12 +2,10 @@ package tannerplayer;
 import battlecode.common.*;
 
 public strictfp class SlanPol extends Unit {
-    RobotController rc;
     RobotType last_round_type = null;
     int round_of_last_move = -1;
     SlanPol(RobotController rbt_controller) {
         super(rbt_controller);
-        rc = rbt_controller;
         last_round_type = rc.getType();
     }
     public void runTurnPolitician() throws GameActionException {
