@@ -32,6 +32,8 @@ public strictfp class Muckraker extends Unit {
 
 
     public void runTurn() throws GameActionException {
+        flagNeutralECs();
+
         Team enemy = rc.getTeam().opponent();
         int sensorRadius = rc.getType().sensorRadiusSquared;
         MapLocation myLoc = rc.getLocation();
