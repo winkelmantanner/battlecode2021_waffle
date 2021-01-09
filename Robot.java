@@ -24,6 +24,13 @@ abstract public strictfp class Robot {
         Direction.NORTHWEST,
     };
 
+    static final Direction[] diagonal_directions = {
+        Direction.NORTHEAST,
+        Direction.SOUTHEAST,
+        Direction.SOUTHWEST,
+        Direction.NORTHWEST,
+    };
+
     Robot(RobotController rbt_controller) {
         rc = rbt_controller;
         roundNumCreated = rc.getRoundNum();

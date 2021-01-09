@@ -47,7 +47,6 @@ abstract public strictfp class Unit extends Robot {
     boolean exploreMove() throws GameActionException {
         if(need_dir) {
             explore_dir = randomDirection();
-            System.out.println("GOT NEW DIR:" + explore_dir.toString());
             need_dir = false;
         }
         boolean moved = false;
@@ -56,7 +55,6 @@ abstract public strictfp class Unit extends Robot {
             moved = true;
         } else if(rc.isReady()) {
             need_dir = true;
-            System.out.println("NEED DIR");
         }
         return moved;
     }

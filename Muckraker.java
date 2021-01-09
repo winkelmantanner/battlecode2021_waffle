@@ -9,6 +9,28 @@ public strictfp class Muckraker extends Unit {
         super(rbt_controller);
         rc = rbt_controller;
     }
+
+
+    boolean getIfFriendlyEcIsInCardinalDirection() throws GameActionException {
+        boolean is_friendly_ec_in_card_dir = false;
+        for(Direction card_dir : Direction.cardinalDirections()) {
+            MapLocation ml = rc.adjacentLocation(card_dir);
+            if(rc.canSenseLocation(ml)) {
+                RobotInfo rbt = rc.senseRobotAtLocation(ml);
+                if(
+                    rbt != null
+                    && rbt.type.equals(RobotType.ENLIGHTENMENT_CENTER)
+                    && rbt.team.equals(rc.getTeam())
+                ) {
+                    is_friendly_ec_in_card_dir = true;
+                    break;
+                }
+            }
+        }
+        return is_friendly_ec_in_card_dir;
+    }
+
+
     public void runTurn() throws GameActionException {
         Team enemy = rc.getTeam().opponent();
         int sensorRadius = rc.getType().sensorRadiusSquared;
@@ -38,15 +60,19 @@ public strictfp class Muckraker extends Unit {
             }
         }
 
-        // Try to move toward enemy slanderers seen recently
-        if (
-            where_i_saw_enemy_slanderer != null
-            && 30 > rc.getRoundNum() - round_when_i_saw_enemy_slanderer
-            && fuzzyStep(where_i_saw_enemy_slanderer)
-        ) {
-            System.out.println("I (muckraker) stepped toward target: " + where_i_saw_enemy_slanderer.toString());
-        }
+        if(!getIfFriendlyEcIsInCardinalDirection()) {
+            // Move only if not a guard
 
-        exploreMove();
+            // Try to move toward enemy slanderers seen recently
+            if (
+                where_i_saw_enemy_slanderer != null
+                && 30 > rc.getRoundNum() - round_when_i_saw_enemy_slanderer
+                && fuzzyStep(where_i_saw_enemy_slanderer)
+            ) {
+                System.out.println("I (muckraker) stepped toward target: " + where_i_saw_enemy_slanderer.toString());
+            }
+
+            exploreMove();
+        }
     }
 }
