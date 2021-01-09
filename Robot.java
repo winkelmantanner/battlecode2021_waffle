@@ -6,6 +6,7 @@ abstract public strictfp class Robot {
     RobotController rc;
     int roundNumCreated = -1;
     int last_round_conviction = 0;
+    MapLocation where_i_spawned = null;
 
     static final RobotType[] spawnableRobot = {
         RobotType.POLITICIAN,
@@ -35,6 +36,7 @@ abstract public strictfp class Robot {
         rc = rbt_controller;
         roundNumCreated = rc.getRoundNum();
         last_round_conviction = rc.getConviction();
+        where_i_spawned = rc.getLocation();
     }
 
     public int roundNumAtStartOfRound = -1;

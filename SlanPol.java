@@ -11,6 +11,8 @@ public strictfp class SlanPol extends Unit {
         last_round_type = rc.getType();
     }
     public void runTurnPolitician() throws GameActionException {
+        flagNeutralECs();
+
         if(rc.getRoundNum() - round_of_last_move < 50 || rc.getRoundNum() % 50 < 5) {
             // The entire purpose of this if is to prevent the client from crashing.
 
