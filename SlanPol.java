@@ -26,7 +26,11 @@ public strictfp class SlanPol extends Unit {
                     for(RobotInfo rbt : rbts) {
                         // System.out.println(String.valueOf(rbt.getID()) + " " + rbt.getLocation().toString() + " " + rbt.getTeam().toString() + " " + rbt.getType().toString() + " " + String.valueOf(rbt.getInfluence()) + " " + String.valueOf(rbt.getConviction()));
                         if(rbt.team != rc.getTeam()) {
-                            transferrableConviction += (conv_available / rbts.length);
+                            if(rbt.type.equals(RobotType.MUCKRAKER)) {
+                                transferrableConviction += rbt.conviction;
+                            } else {
+                                transferrableConviction += (conv_available / rbts.length);
+                            }
                         }
                     }
                 }
@@ -49,10 +53,7 @@ public strictfp class SlanPol extends Unit {
                 RobotInfo [] rbts = rc.senseNearbyRobots(rc.getType().sensorRadiusSquared);
                 for(RobotInfo rbt : rbts) {
                     if(
-                        (
-                            rbt.type.equals(RobotType.ENLIGHTENMENT_CENTER)
-                            || rbt.type.equals(RobotType.MUCKRAKER)
-                        )
+                        rbt.type.equals(RobotType.ENLIGHTENMENT_CENTER)
                         && !rbt.team.equals(rc.getTeam())
                         && myLoc.distanceSquaredTo(rbt.location) < dist2_to_nearest_target
                     ) {
