@@ -4,15 +4,8 @@ import battlecode.common.*;
 // A Unit is a Robot that can move.
 
 abstract public strictfp class Unit extends Robot {
-    boolean preferRotateRight = false;
     Unit(RobotController rbt_controller) {
         super(rbt_controller);
-
-        preferRotateRight = (rc.getID() % 2 == 1);
-        // preferRotateRight == unit ID is odd
-        // I used the unit ID because Math.random() returns the same value for different units.
-
-        System.out.println("I prefer to rotate " + (preferRotateRight ? "right" : "left"));
     }
 
     final int NEUTRAL_EC = 1;
