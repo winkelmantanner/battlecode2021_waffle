@@ -30,7 +30,6 @@ public strictfp class SlanPol extends Unit {
             if(conv_available >= 1) {
                 RobotInfo [] rbts = rc.senseNearbyRobots(actionR2);
                 for(RobotInfo rbt : rbts) {
-                    // System.out.println(String.valueOf(rbt.getID()) + " " + rbt.getLocation().toString() + " " + rbt.getTeam().toString() + " " + rbt.getType().toString() + " " + String.valueOf(rbt.getInfluence()) + " " + String.valueOf(rbt.getConviction()));
                     if(rbt.team != rc.getTeam()) {
                         if(rbt.type.equals(RobotType.MUCKRAKER)) {
                             transferrableConviction += rbt.conviction;
@@ -70,11 +69,7 @@ public strictfp class SlanPol extends Unit {
                 }
             }
             if(target_rbt != null) {
-                if(fuzzyStep(target_rbt.location)) {
-                    System.out.println("I (politician) stepped toward " + target_rbt.location.toString());
-                } else {
-                    System.out.println("I (politician) failed to step toward " + target_rbt.location.toString());
-                }
+                fuzzyStep(target_rbt.location);
             }
         }
     }
@@ -87,7 +82,6 @@ public strictfp class SlanPol extends Unit {
                     int x = (int)((byte)((flag_val >> 8) & 0b11111111));
                     int y = (int)((byte)(flag_val & 0b11111111));
                     target_loc_from_flag = where_i_spawned.translate(x, y);
-                    System.out.println("Moving by flag toward " + target_loc_from_flag.toString() + " x:" + String.valueOf(x) + " y:" + String.valueOf(y) + " where_i_spawned:" + where_i_spawned.toString());
                     round_num_of_flag_read = rc.getRoundNum();
                 }
             }
