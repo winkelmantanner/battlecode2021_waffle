@@ -7,6 +7,7 @@ abstract public strictfp class Robot {
     int roundNumCreated = -1;
     int last_round_conviction = 0;
     MapLocation where_i_spawned = null;
+    boolean preferRotateRight = false;
 
     static final RobotType[] spawnableRobot = {
         RobotType.POLITICIAN,
@@ -42,6 +43,11 @@ abstract public strictfp class Robot {
     public int roundNumAtStartOfRound = -1;
     public void beforeRunTurn() {
         roundNumAtStartOfRound = rc.getRoundNum();
+
+        // preferRotateRight == unit ID is odd
+        // I used the robot ID because Math.random() returns the same value for different robots.
+        preferRotateRight = ((int)(rc.getID() * Math.random())) % 10 < 5;
+
         // if(rc.getConviction() != last_round_conviction) {
         //     System.out.println("conviction changed Location:" + rc.getLocation().toString() + "  Conviction:" + String.valueOf(rc.getConviction()) + "  last_round_conviction:" + String.valueOf(last_round_conviction));
         // }
