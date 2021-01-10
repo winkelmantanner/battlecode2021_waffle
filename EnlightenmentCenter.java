@@ -110,9 +110,15 @@ public strictfp class EnlightenmentCenter extends Robot {
                     directions
                 );
             } else {
+                int influence = STANDARD_UNIT_INFLUENCE;
+                if(rc.getInfluence() - STANDARD_UNIT_INFLUENCE > 20 * STANDARD_UNIT_INFLUENCE) {
+                    influence = STANDARD_UNIT_INFLUENCE + (int)(
+                        Math.random() * (rc.getInfluence() / 2)
+                    );
+                }
                 myBuild(
                     RobotType.POLITICIAN,
-                    STANDARD_UNIT_INFLUENCE,
+                    influence,
                     directions
                 );
             }
