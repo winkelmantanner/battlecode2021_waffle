@@ -34,14 +34,11 @@ public strictfp class EnlightenmentCenter extends Robot {
                 int flag_val = rc.getFlag(target_robot_id);
                 if(flag_val != 0) {
                     if(trySetFlag(flag_val)) {
-                        System.out.println("Set flag to flag of robot with id " + String.valueOf(target_robot_id) + " value:" + String.valueOf(flag_val));
                         // Because trySetFlag sets round_when_i_last_set_my_flag,
                         //   the loop will exit after this iteration.
                         // The ++ statement at the end needs to execute still.
                     }
                 }
-            } else {
-                System.out.println("Could not get flag of robot with id " + String.valueOf(target_robot_id));
             }
             current_built_robot_array_index++;
         }
@@ -68,7 +65,6 @@ public strictfp class EnlightenmentCenter extends Robot {
             rc.buildRobot(type, best_build_dir, influence);
             robots_i_built[numRobotsBuilt] = rc.senseRobotAtLocation(rc.adjacentLocation(best_build_dir)).ID;
             numRobotsBuilt++;
-            System.out.println("BUILT");
             built = true;
         }
         return built;
@@ -107,7 +103,7 @@ public strictfp class EnlightenmentCenter extends Robot {
                 Direction.cardinalDirections()
             );
         } else if(rc.getInfluence() > STANDARD_UNIT_INFLUENCE) {
-            if(Math.random() < 0.9) {
+            if(Math.random() < 0.75) {
                 myBuild(
                     RobotType.MUCKRAKER,
                     1,

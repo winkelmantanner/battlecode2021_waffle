@@ -35,8 +35,6 @@ public strictfp class RobotPlayer {
             turnCount += 1;
             // Try/catch blocks stop unhandled exceptions, which cause your robot to freeze
             try {
-                // System.out.println("I'm a " + rc.getType() + "! Location " + rc.getLocation());
-
                 me.runRobotTurn();
 
                 // Clock.yield() makes the robot wait until the next turn, then it will perform this loop again

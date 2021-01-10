@@ -46,9 +46,7 @@ abstract public strictfp class Unit extends Robot {
         }
         if(20 < rc.getRoundNum() - round_when_i_last_set_my_flag) {
             // Because trySetFlag sets round_when_i_last_set_my_flag, this runs once per 20 rounds
-            if(trySetFlag(0)) {
-                System.out.println("(Unit) set my flag to 0");
-            }
+            trySetFlag(0);
         }
         if(neutral_ec != null) {
             int value_for_flag = getValueForFlag(
@@ -57,9 +55,6 @@ abstract public strictfp class Unit extends Robot {
             );
             if(trySetFlag(value_for_flag)) {
                 did_set_flag = true;
-                System.out.println("Set flag to " + String.valueOf(value_for_flag));
-            } else {
-                System.out.println("Could not set flag to " + String.valueOf(value_for_flag));
             }
         }
         return did_set_flag;
