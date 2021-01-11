@@ -40,7 +40,7 @@ public strictfp class SlanPol extends Unit {
                             just_do_it = true;
                         }
                         if(rbt.type.equals(RobotType.MUCKRAKER)) {
-                            transferrableConviction += rbt.conviction;
+                            transferrableConviction += Math.min(rbt.conviction, conv_available / rbts.length);
                         } else {
                             transferrableConviction += (conv_available / rbts.length);
                         }
