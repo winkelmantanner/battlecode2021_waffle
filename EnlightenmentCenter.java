@@ -89,6 +89,10 @@ public strictfp class EnlightenmentCenter extends Robot {
     final int OPTIMAL_SLANDERER_INFLUENCE = 21; // https://www.desmos.com/calculator/ydkbaqrx7v
     final int STANDARD_UNIT_INFLUENCE = 50;
     public void runTurn() throws GameActionException {
+        int shield_conviction = 50 * getEcPassiveIncome(rc.getRoundNum());
+        System.out.println("passive ec income: " + String.valueOf(getEcPassiveIncome(rc.getRoundNum())) + " shield:" + String.valueOf(shield_conviction));
+        int available_influence = rc.getInfluence() - shield_conviction;
+
         //At the very beginning, build a few slanderers
         if(rc.getRoundNum() <= 3) {
             myBuild(
@@ -103,7 +107,7 @@ public strictfp class EnlightenmentCenter extends Robot {
                 1,
                 Direction.cardinalDirections()
             );
-        } else if(rc.getInfluence() > STANDARD_UNIT_INFLUENCE) {
+        } else if(available_influence > STANDARD_UNIT_INFLUENCE) {
             if(Math.random() < 0.75) {
                 myBuild(
                     RobotType.MUCKRAKER,
@@ -112,9 +116,9 @@ public strictfp class EnlightenmentCenter extends Robot {
                 );
             } else {
                 int influence = STANDARD_UNIT_INFLUENCE;
-                if(rc.getInfluence() - STANDARD_UNIT_INFLUENCE > 20 * STANDARD_UNIT_INFLUENCE) {
+                if(available_influence - STANDARD_UNIT_INFLUENCE > 20 * STANDARD_UNIT_INFLUENCE) {
                     influence = STANDARD_UNIT_INFLUENCE + (int)(
-                        Math.random() * (rc.getInfluence() / 2)
+                        Math.random() * (available_influence / 2)
                     );
                 }
                 myBuild(
@@ -146,7 +150,7 @@ public strictfp class EnlightenmentCenter extends Robot {
             i_should_bid
             && Math.random() < 0.9
         ) {
-            int amount = (int) (Math.random() * rc.getInfluence() / 20);
+            int amount = (int) (Math.random() * available_influence / 20);
             if(rc.canBid(amount)) {
                 rc.bid(amount);
                 i_bidded_last_round = true;

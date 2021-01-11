@@ -67,6 +67,14 @@ abstract public strictfp class Robot {
     abstract public void runTurn() throws GameActionException;
 
 
+    int getEcPassiveIncome(final int round_num) {
+        return (int)(
+            GameConstants.PASSIVE_INFLUENCE_RATIO_ENLIGHTENMENT_CENTER
+            * Math.sqrt(round_num)
+        );
+    }
+
+
     public double recipDecay(final double x, final double half_life) {
         return half_life / (x + half_life);
     }
