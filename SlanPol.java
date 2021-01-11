@@ -27,10 +27,18 @@ public strictfp class SlanPol extends Unit {
         for(int r_unsquared = 1; r_unsquared * r_unsquared <= rc.getType().actionRadiusSquared; r_unsquared++) {
             int actionR2 = r_unsquared * r_unsquared;
             int transferrableConviction = 0;
+            boolean just_do_it = false;
             if(conv_available >= 1) {
                 RobotInfo [] rbts = rc.senseNearbyRobots(actionR2);
                 for(RobotInfo rbt : rbts) {
                     if(rbt.team != rc.getTeam()) {
+                        if(
+                            rbt.type.equals(RobotType.ENLIGHTENMENT_CENTER)
+                            && conv_available / rbts.length > rbt.conviction
+                        ) {
+                            // It will convert the EC: just do it
+                            just_do_it = true;
+                        }
                         if(rbt.type.equals(RobotType.MUCKRAKER)) {
                             transferrableConviction += rbt.conviction;
                         } else {
@@ -40,12 +48,16 @@ public strictfp class SlanPol extends Unit {
                 }
             }
             if (rc.canEmpower(actionR2) &&
-                transferrableConviction
-                >= conv_available
-                    * recipDecay(
-                        rc.getRoundNum() - roundNumCreated,
-                        100
+                (
+                    just_do_it
+                    || (transferrableConviction
+                        >= conv_available
+                            * recipDecay(
+                                rc.getRoundNum() - roundNumCreated,
+                                100
+                            )
                     )
+                )
             ) {
                 System.out.println("empowering  my conviction:" + String.valueOf(rc.getConviction()) + " actionR2:" + String.valueOf(actionR2));
                 rc.empower(actionR2);
