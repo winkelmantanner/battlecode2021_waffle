@@ -11,6 +11,7 @@ public strictfp class EnlightenmentCenter extends Robot {
 
     boolean i_should_bid = true;
     boolean i_bidded_last_round = false;
+    int round_when_i_last_bidded = -1;
 
     EnlightenmentCenter(RobotController rbt_controller) {
         super(rbt_controller);
@@ -125,6 +126,12 @@ public strictfp class EnlightenmentCenter extends Robot {
         }
 
         if(
+            rc.getRoundNum() - round_when_i_last_bidded > 100
+            && rc.getInfluence() > 500
+        ) {
+            i_should_bid = true;
+        }
+        if(
             rc.getTeamVotes() > last_round_team_votes
             && !i_bidded_last_round
         ) {
@@ -135,11 +142,15 @@ public strictfp class EnlightenmentCenter extends Robot {
             i_should_bid = false;
         }
         i_bidded_last_round = false;
-        if(i_should_bid) {
+        if(
+            i_should_bid
+            && Math.random() < 0.9
+        ) {
             int amount = (int) (Math.random() * rc.getInfluence() / 20);
             if(rc.canBid(amount)) {
                 rc.bid(amount);
                 i_bidded_last_round = true;
+                round_when_i_last_bidded = rc.getRoundNum();
                 System.out.println("I bidded " + String.valueOf(amount));
             } else {
                 System.out.println("I could not bid " + String.valueOf(amount));
