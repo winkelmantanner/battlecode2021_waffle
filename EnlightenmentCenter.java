@@ -9,7 +9,7 @@ public strictfp class EnlightenmentCenter extends Robot {
     // Use it to determine if other friendly ECs are bidding.
     int last_round_team_votes = 0;
 
-    boolean i_should_bid = true;
+    boolean i_should_bid = false;
     boolean i_bidded_last_round = false;
     int round_when_i_last_bidded = -1;
 
@@ -127,7 +127,7 @@ public strictfp class EnlightenmentCenter extends Robot {
 
         if(
             rc.getRoundNum() - round_when_i_last_bidded > 100
-            && rc.getInfluence() > 500
+            && rc.getRoundNum() > (rc.getID() % 1000)
         ) {
             i_should_bid = true;
         }
