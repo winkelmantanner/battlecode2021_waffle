@@ -4,7 +4,7 @@ My code for MIT BattleCode 2021.
 
 Tanner's notes on how to make this work:
 
-Tanner's Mac has 2 versions of Java in /Library/Java/JavaVirtualMachines/
+Tanner's 2017 Mac has 2 versions of Java in /Library/Java/JavaVirtualMachines/
 
 The current one is determined by the env variable JAVA_HOME
 
@@ -15,6 +15,8 @@ This battlecode stuff ONLY works if the other one is used.
 So I have to run:
 
 `export JAVA_HOME='/Library/Java/JavaVirtualMachines/jdk1.8.0_181.jdk/Contents/Home'`
+
+UPDATE new computer: `export JAVA_HOME='/Library/Java/JavaVirtualMachines/jdk1.8.0_271.jdk/Contents/Home'`
 
 Then run:
 
