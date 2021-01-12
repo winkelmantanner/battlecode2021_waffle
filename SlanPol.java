@@ -41,8 +41,10 @@ public strictfp class SlanPol extends Unit {
                         }
                         if(rbt.type.equals(RobotType.MUCKRAKER)) {
                             transferrableConviction += Math.min(rbt.conviction, conv_available / rbts.length);
+                        } else if(rbt.type.equals(RobotType.POLITICIAN)) {
+                            transferrableConviction += Math.min(rbt.conviction + rbt.influence, conv_available / rbts.length);
                         } else {
-                            transferrableConviction += (conv_available / rbts.length);
+                            transferrableConviction += conv_available / rbts.length;
                         }
                     }
                 }
@@ -59,7 +61,7 @@ public strictfp class SlanPol extends Unit {
                     )
                 )
             ) {
-                System.out.println("empowering  my conviction:" + String.valueOf(rc.getConviction()) + " actionR2:" + String.valueOf(actionR2));
+                System.out.println("empowering  my conviction:" + String.valueOf(rc.getConviction()) + " actionR2:" + String.valueOf(actionR2) + " transferrableConviction:" + String.valueOf(transferrableConviction));
                 rc.empower(actionR2);
             }
         }
