@@ -21,12 +21,12 @@ public strictfp class SlanPol extends Unit {
     }
 
     void empowerIfApplicable() throws GameActionException {
-        final int conv_available = (
-            (int)(rc.getConviction() * rc.getEmpowerFactor(rc.getTeam(), 0))
+        final double conv_available = (
+            rc.getConviction() * rc.getEmpowerFactor(rc.getTeam(), 0)
         ) - 10;
         for(int r_unsquared = 1; r_unsquared * r_unsquared <= rc.getType().actionRadiusSquared; r_unsquared++) {
             int actionR2 = r_unsquared * r_unsquared;
-            int transferrableConviction = 0;
+            double transferrableConviction = 0;
             boolean just_do_it = false;
             if(conv_available >= 1) {
                 RobotInfo [] rbts = rc.senseNearbyRobots(actionR2);
