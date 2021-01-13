@@ -116,7 +116,10 @@ public strictfp class EnlightenmentCenter extends Robot {
             );
         } else if(
             should_build_pols
-            && available_influence > influence_to_put_into_next_politician
+            && available_influence
+              > shield_conviction
+              // This will mean 2*sheild_conviction is required to build pols
+              // The total influence will converge on 2*shield_conviction by the bidding code
         ) {
             System.out.println("I have enough inf");
             if(myBuild(
@@ -159,6 +162,7 @@ public strictfp class EnlightenmentCenter extends Robot {
             int amount = (int) (
                 Math.random() * available_influence
                     / (SHIELD_FACTOR / 2) // divide by 2 since Math.random averages 0.5
+                // This will result in the conviction converging on 2*shield_conviction
             );
             if(rc.canBid(amount)) {
                 rc.bid(amount);
