@@ -121,9 +121,27 @@ public strictfp class SlanPol extends Unit {
 
         exploreMove();
     }
+
     public void runTurnSlanderer() throws GameActionException {
+        MapLocation myLoc = rc.getLocation();
+        MapLocation loc_of_nearest_enemy_mr = null;
+        int dist2_to_nearest_enemy_mr = 123456;
+        for(RobotInfo rbt : rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, rc.getTeam().opponent())) {
+            if(rbt.type.equals(RobotType.MUCKRAKER)
+                && myLoc.distanceSquaredTo(rbt.location) < dist2_to_nearest_enemy_mr
+            ) {
+                loc_of_nearest_enemy_mr = rbt.location;
+                dist2_to_nearest_enemy_mr = myLoc.distanceSquaredTo(rbt.location);
+            }
+        }
+        if(loc_of_nearest_enemy_mr != null) {
+            if(tryMove(myLoc.directionTo(loc_of_nearest_enemy_mr).opposite())) {
+                System.out.println("Ran from enemy muckraker at " + loc_of_nearest_enemy_mr.toString());
+            }
+        }
         if (tryMove(randomDirection())) {}
     }
+
     public void runTurn() throws GameActionException {
         switch (rc.getType()) {
             case POLITICIAN: runTurnPolitician(); break;
