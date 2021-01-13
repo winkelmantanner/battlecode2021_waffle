@@ -2,8 +2,10 @@ package tannerplayer;
 import battlecode.common.*;
 
 public strictfp class EnlightenmentCenter extends Robot {
-    int numRobotsBuilt = 0;
-    int [] robots_i_built = new int[GameConstants.MAP_MAX_WIDTH * GameConstants.MAP_MAX_HEIGHT];
+    final int SHIELD_FACTOR = 50;
+    final int MIN_POLITICIAN_INFLUENCE = 50;
+    final int OPTIMAL_SLANDERER_INFLUENCE = 21; // https://www.desmos.com/calculator/ydkbaqrx7v
+    final int MUCKRAKER_INFLUENCE = 1;
 
     // This does not get initialized.
     // Use it to determine if other friendly ECs are bidding.
@@ -17,6 +19,10 @@ public strictfp class EnlightenmentCenter extends Robot {
         super(rbt_controller);
     }
 
+    int shield_conviction = 0;
+
+    int numRobotsBuilt = 0;
+    int [] robots_i_built = new int[GameConstants.MAP_MAX_WIDTH * GameConstants.MAP_MAX_HEIGHT];
     int current_built_robot_array_index = 0;
     void doFlagStuff() throws GameActionException {
         if(20 < rc.getRoundNum() - round_when_i_last_set_my_flag) {
@@ -48,6 +54,8 @@ public strictfp class EnlightenmentCenter extends Robot {
         }
     }
 
+    boolean should_build_pols = true;
+    int influence_to_put_into_next_politician = MIN_POLITICIAN_INFLUENCE;
     boolean myBuild(final RobotType type, final int influence, final Direction [] dirs) throws GameActionException {
         double max_passability = 0;
         Direction best_build_dir = null;
@@ -86,10 +94,9 @@ public strictfp class EnlightenmentCenter extends Robot {
         return are_all_4_cardinals_occupied;
     }
 
-    final int OPTIMAL_SLANDERER_INFLUENCE = 21; // https://www.desmos.com/calculator/ydkbaqrx7v
-    final int STANDARD_UNIT_INFLUENCE = 50;
+
     public void runTurn() throws GameActionException {
-        int shield_conviction = 50 * getEcPassiveIncome(rc.getRoundNum());
+        shield_conviction = SHIELD_FACTOR * getEcPassiveIncome(rc.getRoundNum());
         System.out.println("passive ec income: " + String.valueOf(getEcPassiveIncome(rc.getRoundNum())) + " shield:" + String.valueOf(shield_conviction));
         int available_influence = rc.getInfluence() - shield_conviction;
 
@@ -107,26 +114,28 @@ public strictfp class EnlightenmentCenter extends Robot {
                 1,
                 Direction.cardinalDirections()
             );
-        } else if(available_influence > STANDARD_UNIT_INFLUENCE) {
-            if(Math.random() < 0.75) {
-                myBuild(
-                    RobotType.MUCKRAKER,
-                    1,
-                    directions
-                );
-            } else {
-                int influence = STANDARD_UNIT_INFLUENCE;
-                if(available_influence - STANDARD_UNIT_INFLUENCE > 20 * STANDARD_UNIT_INFLUENCE) {
-                    influence = STANDARD_UNIT_INFLUENCE + (int)(
-                        Math.random() * (available_influence / 2)
-                    );
+        } else if(
+            should_build_pols
+            && available_influence > influence_to_put_into_next_politician
+        ) {
+            System.out.println("I have enough inf");
+            if(myBuild(
+                RobotType.POLITICIAN,
+                influence_to_put_into_next_politician,
+                directions
+            )) {
+                influence_to_put_into_next_politician = MIN_POLITICIAN_INFLUENCE;
+                if(rc.getRoundNum() > 1000) {
+                    should_build_pols = false;
                 }
-                myBuild(
-                    RobotType.POLITICIAN,
-                    influence,
-                    directions
-                );
+                System.out.println("I want to put " + String.valueOf(influence_to_put_into_next_politician) + " into my next pol");
             }
+        } else if(available_influence >= MUCKRAKER_INFLUENCE) {
+            myBuild(
+                RobotType.MUCKRAKER,
+                MUCKRAKER_INFLUENCE,
+                directions
+            );
         }
 
         if(
@@ -150,7 +159,10 @@ public strictfp class EnlightenmentCenter extends Robot {
             i_should_bid
             && Math.random() < 0.9
         ) {
-            int amount = (int) (Math.random() * available_influence / 20);
+            int amount = (int) (
+                Math.random() * available_influence
+                    / (SHIELD_FACTOR / 2) // divide by 2 since Math.random averages 0.5
+            );
             if(rc.canBid(amount)) {
                 rc.bid(amount);
                 i_bidded_last_round = true;
