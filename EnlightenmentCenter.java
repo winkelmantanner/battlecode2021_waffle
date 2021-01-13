@@ -3,7 +3,7 @@ import battlecode.common.*;
 
 public strictfp class EnlightenmentCenter extends Robot {
     final int SHIELD_FACTOR = 50;
-    final int MIN_POLITICIAN_INFLUENCE = 50;
+    final int STANDARD_POLITICIAN_INFLUENCE = 50;
     final int OPTIMAL_SLANDERER_INFLUENCE = 21; // https://www.desmos.com/calculator/ydkbaqrx7v
     final int MUCKRAKER_INFLUENCE = 1;
 
@@ -55,7 +55,7 @@ public strictfp class EnlightenmentCenter extends Robot {
     }
 
     boolean should_build_pols = true;
-    int influence_to_put_into_next_politician = MIN_POLITICIAN_INFLUENCE;
+    int influence_to_put_into_next_politician = STANDARD_POLITICIAN_INFLUENCE;
     boolean myBuild(final RobotType type, final int influence, final Direction [] dirs) throws GameActionException {
         double max_passability = 0;
         Direction best_build_dir = null;
@@ -124,7 +124,7 @@ public strictfp class EnlightenmentCenter extends Robot {
                 influence_to_put_into_next_politician,
                 directions
             )) {
-                influence_to_put_into_next_politician = MIN_POLITICIAN_INFLUENCE;
+                influence_to_put_into_next_politician = STANDARD_POLITICIAN_INFLUENCE;
                 if(rc.getRoundNum() > 1000) {
                     should_build_pols = false;
                 }
