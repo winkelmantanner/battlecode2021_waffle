@@ -27,6 +27,13 @@ public strictfp class EnlightenmentCenter extends Robot {
     void doFlagStuff() throws GameActionException {
         standardFlagReset();
 
+        RobotInfo nearest_enemy = nearestRobot(
+            null,
+            -1,
+            rc.getTeam().opponent(),
+            null
+        );
+
         while(
             current_built_robot_array_index < numRobotsBuilt
             && Clock.getBytecodesLeft() > 1000
@@ -36,6 +43,16 @@ public strictfp class EnlightenmentCenter extends Robot {
             if(rc.canGetFlag(target_robot_id)) {
                 int flag_val = rc.getFlag(target_robot_id);
                 if(flag_val != 0) {
+                    if(flag_val >> 16 == ENEMY_ROBOT && nearest_enemy != null) {
+                        // If we (the EC) see an enemy, flag it instead of what other robots say. 
+                        flag_val = getValueForFlag(
+                            ENEMY_ROBOT,
+                            nearest_enemy.location
+                        );
+                        System.out.println("flagged enemy I saw at " + nearest_enemy.location.toString());
+                    } else {
+                        System.out.println("copying flag from robot " + String.valueOf(target_robot_id));
+                    }
                     if(trySetFlag(flag_val)) {
                         // Because trySetFlag sets round_when_i_last_set_my_flag,
                         //   the loop will exit after this iteration.
