@@ -30,7 +30,9 @@ public strictfp class Muckraker extends Unit {
 
 
     public void runTurn() throws GameActionException {
+        flagEnemies();
         flagNeutralECs();
+        // The second flag overrides the first
 
         Team enemy = rc.getTeam().opponent();
         int sensorRadius = rc.getType().sensorRadiusSquared;

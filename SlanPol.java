@@ -111,7 +111,9 @@ public strictfp class SlanPol extends Unit {
     int round_num_of_flag_read = -1;
 
     public void runTurnPolitician() throws GameActionException {
+        flagEnemies();
         flagNeutralECs();
+        // The second flag overrides the first
 
         empowerIfApplicable();
 
@@ -123,6 +125,8 @@ public strictfp class SlanPol extends Unit {
     }
 
     public void runTurnSlanderer() throws GameActionException {
+        flagEnemies();
+
         MapLocation myLoc = rc.getLocation();
         MapLocation loc_of_nearest_enemy_mr = null;
         int dist2_to_nearest_enemy_mr = 123456;
