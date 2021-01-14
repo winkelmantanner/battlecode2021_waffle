@@ -9,6 +9,7 @@ abstract public strictfp class Unit extends Robot {
     }
 
     final int NEUTRAL_EC = 1;
+    final int ENEMY_ROBOT = 2;
     int getValueForFlag(
         final int what_the_flag_represents,
         MapLocation loc
@@ -48,6 +49,33 @@ abstract public strictfp class Unit extends Robot {
             );
             if(trySetFlag(value_for_flag)) {
                 did_set_flag = true;
+            }
+        }
+        return did_set_flag;
+    }
+
+    boolean flagEnemies() throws GameActionException {
+        boolean did_set_flag = false;
+        int x_sum = 0;
+        int y_sum = 0;
+        int count = 0;
+        for(RobotInfo rbt : rc.senseNearbyRobots(
+            rc.getType().sensorRadiusSquared,
+            rc.getTeam().opponent()
+        )) {
+            x_sum += rbt.location.x;
+            y_sum += rbt.location.y;
+            count++;
+        }
+        if(count > 0) {
+            MapLocation enemy_centroid = new MapLocation(x_sum / count, y_sum / count);
+            int flag_val = getValueForFlag(
+                ENEMY_ROBOT,
+                enemy_centroid
+            );
+            if(trySetFlag(flag_val)) {
+                did_set_flag = true;
+                System.out.println("Flagged centroid " + enemy_centroid.toString() + " of " + String.valueOf(count) + " enemies.");
             }
         }
         return did_set_flag;
