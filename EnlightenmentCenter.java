@@ -140,7 +140,7 @@ public strictfp class EnlightenmentCenter extends Robot {
 
         if(
             rc.getRoundNum() - round_when_i_last_bidded > 100
-            && rc.getRoundNum() > (rc.getID() % 1000)
+            && rc.getRoundNum() > (rc.getID() % 500)
         ) {
             i_should_bid = true;
         }
