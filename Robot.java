@@ -98,6 +98,109 @@ abstract public strictfp class Robot {
         }
     }
 
+    final int NEUTRAL_EC = 1;
+    final int ENEMY_ROBOT = 2;
+    int getValueForFlag(
+        final int what_the_flag_represents,
+        MapLocation loc
+    ) {
+        // These two variables need to be int type.
+        // If they are byte type, if they are negative they will be incorrectly casted to a negative int.
+        int x = 0b11111111 & (loc.x - where_i_spawned.x);
+        int y = 0b11111111 & (loc.y - where_i_spawned.y);
+        int result = what_the_flag_represents;
+        result <<= 8;
+        result |= x;
+        result <<= 8;
+        result |= y;
+
+        return result;
+    }
+    MapLocation getMapLocationFromFlagValue(final int flag_value) {
+        // the flag must be from a robot from the same EC as us
+        int dx = (int)((byte)((flag_value >> 8) & 0b11111111));
+        int dy = (int)((byte)(flag_value & 0b11111111));
+        return where_i_spawned.translate(dx, dy);
+    }
+
+
+    boolean flagNeutralECs() throws GameActionException {
+        standardFlagReset();
+
+        boolean did_set_flag = false;
+        int neutral_ec_id = -1;
+        RobotInfo neutral_ec = null;
+        for(RobotInfo rbt : rc.senseNearbyRobots(
+            rc.getType().sensorRadiusSquared,
+            Team.NEUTRAL
+        )) {
+            neutral_ec = rbt;
+        }
+        if(neutral_ec != null) {
+            int value_for_flag = getValueForFlag(
+                NEUTRAL_EC,
+                neutral_ec.location
+            );
+            if(trySetFlag(value_for_flag)) {
+                did_set_flag = true;
+            }
+        }
+        return did_set_flag;
+    }
+
+    boolean flagEnemies() throws GameActionException {
+        standardFlagReset();
+
+        boolean did_set_flag = false;
+        int x_sum = 0;
+        int y_sum = 0;
+        int count = 0;
+        for(RobotInfo rbt : rc.senseNearbyRobots(
+            rc.getType().sensorRadiusSquared,
+            rc.getTeam().opponent()
+        )) {
+            x_sum += rbt.location.x;
+            y_sum += rbt.location.y;
+            count++;
+        }
+        if(count > 0) {
+            MapLocation enemy_centroid = new MapLocation(x_sum / count, y_sum / count);
+            int flag_val = getValueForFlag(
+                ENEMY_ROBOT,
+                enemy_centroid
+            );
+            if(trySetFlag(flag_val)) {
+                did_set_flag = true;
+            }
+        }
+        return did_set_flag;
+    }
+
+    RobotInfo nearestRobot(
+        final MapLocation center, // null for rc.getLocation()
+        final int radiusSquared, // -1 for sensorRadiusSquared
+        final Team team, // null for either team
+        final RobotType type // null for any type
+    ) {
+        MapLocation nonnull_center = (center == null ? rc.getLocation() : center);
+        RobotInfo nearest = null;
+        int dist2_to_nearest = 123456;
+        for(RobotInfo rbt : rc.senseNearbyRobots(
+            nonnull_center,
+            radiusSquared,
+            team
+        )) {
+            if(type == null || rbt.type == type) {
+                int dist2 = nonnull_center.distanceSquaredTo(rbt.location);
+                if(dist2 < dist2_to_nearest) {
+                    nearest = rbt;
+                    dist2_to_nearest = dist2;
+                }
+            }
+        }
+        return nearest;
+    }
+
 
 
     /**
