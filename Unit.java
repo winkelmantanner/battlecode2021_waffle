@@ -26,9 +26,17 @@ abstract public strictfp class Unit extends Robot {
 
         return result;
     }
+    MapLocation getMapLocationFromFlagValue(final int flag_value) {
+        // the flag must be from a robot from the same EC as us
+        int dx = (int)((byte)((flag_value >> 8) & 0b11111111));
+        int dy = (int)((byte)(flag_value & 0b11111111));
+        return where_i_spawned.translate(dx, dy);
+    }
 
 
     boolean flagNeutralECs() throws GameActionException {
+        standardFlagReset();
+
         boolean did_set_flag = false;
         int neutral_ec_id = -1;
         RobotInfo neutral_ec = null;
@@ -37,10 +45,6 @@ abstract public strictfp class Unit extends Robot {
             Team.NEUTRAL
         )) {
             neutral_ec = rbt;
-        }
-        if(20 < rc.getRoundNum() - round_when_i_last_set_my_flag) {
-            // Because trySetFlag sets round_when_i_last_set_my_flag, this runs once per 20 rounds
-            trySetFlag(0);
         }
         if(neutral_ec != null) {
             int value_for_flag = getValueForFlag(
@@ -55,6 +59,8 @@ abstract public strictfp class Unit extends Robot {
     }
 
     boolean flagEnemies() throws GameActionException {
+        standardFlagReset();
+
         boolean did_set_flag = false;
         int x_sum = 0;
         int y_sum = 0;

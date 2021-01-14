@@ -25,12 +25,8 @@ public strictfp class EnlightenmentCenter extends Robot {
     int [] robots_i_built = new int[GameConstants.MAP_MAX_WIDTH * GameConstants.MAP_MAX_HEIGHT];
     int current_built_robot_array_index = 0;
     void doFlagStuff() throws GameActionException {
-        if(20 < rc.getRoundNum() - round_when_i_last_set_my_flag) {
-            // Because trySetFlag sets round_when_i_last_set_my_flag, this runs once per 20 rounds
-            if(trySetFlag(0)) {
-                System.out.println("set my flag to 0");
-            }
-        }
+        standardFlagReset();
+
         while(
             current_built_robot_array_index < numRobotsBuilt
             && Clock.getBytecodesLeft() > 1000

@@ -88,14 +88,12 @@ public strictfp class SlanPol extends Unit {
         }
     }
 
-    void flagReceivingStuff() throws GameActionException {
+    void polFlagReceivingStuff() throws GameActionException {
         if(target_loc_from_flag == null) {
             if(rc.canGetFlag(id_of_ec_to_look_to)) {
                 int flag_val = rc.getFlag(id_of_ec_to_look_to);
                 if(flag_val >> 16 == NEUTRAL_EC) {
-                    int x = (int)((byte)((flag_val >> 8) & 0b11111111));
-                    int y = (int)((byte)(flag_val & 0b11111111));
-                    target_loc_from_flag = where_i_spawned.translate(x, y);
+                    target_loc_from_flag = getMapLocationFromFlagValue(flag_val);
                     round_num_of_flag_read = rc.getRoundNum();
                 }
             }
@@ -104,6 +102,34 @@ public strictfp class SlanPol extends Unit {
         }
         if(50 < rc.getRoundNum() - round_num_of_flag_read) {
             target_loc_from_flag = null;
+        }
+    }
+
+    final int HIDING_DISTANCE = 5; // not squared
+    MapLocation enemy_loc_from_flag = null;
+    int round_of_enemy_loc_from_flag = -1;
+    void slanFlagReceivingStuff() throws GameActionException {
+        if(enemy_loc_from_flag == null) {
+            if(rc.canGetFlag(id_of_ec_to_look_to)) {
+                int flag_val = rc.getFlag(id_of_ec_to_look_to);
+                if(flag_val >> 16 == ENEMY_ROBOT) {
+                    enemy_loc_from_flag = getMapLocationFromFlagValue(flag_val);
+                    round_of_enemy_loc_from_flag = rc.getRoundNum();
+                }
+            }
+        } else {
+            Direction enemy_dir = where_i_spawned.directionTo(enemy_loc_from_flag);
+            Direction hiding_dir = enemy_dir.opposite();
+            MapLocation hiding_spot = where_i_spawned.translate(
+                hiding_dir.dx * HIDING_DISTANCE,
+                hiding_dir.dy * HIDING_DISTANCE
+            );
+            if(fuzzyStep(hiding_spot)) {
+                System.out.println("HID BASED ON FLAGGED ENEMY at " + enemy_loc_from_flag.toString());
+            }
+        }
+        if(10 < rc.getRoundNum() - round_of_enemy_loc_from_flag) {
+            enemy_loc_from_flag = null;
         }
     }
 
@@ -119,7 +145,7 @@ public strictfp class SlanPol extends Unit {
 
         moveTowardSensableRobotsIfApplicable();
 
-        flagReceivingStuff();
+        polFlagReceivingStuff();
 
         exploreMove();
     }
@@ -143,6 +169,9 @@ public strictfp class SlanPol extends Unit {
                 System.out.println("Ran from enemy muckraker at " + loc_of_nearest_enemy_mr.toString());
             }
         }
+        
+        slanFlagReceivingStuff();
+
         if (tryMove(randomDirection())) {}
     }
 

@@ -89,6 +89,14 @@ abstract public strictfp class Robot {
         }
         return did_set_flag;
     }
+    void standardFlagReset() throws GameActionException {
+        if(5 < rc.getRoundNum() - round_when_i_last_set_my_flag) {
+            // Because trySetFlag sets round_when_i_last_set_my_flag, this runs once per 20 rounds
+            if(trySetFlag(0)) {
+                System.out.println("set my flag to 0");
+            }
+        }
+    }
 
 
 
