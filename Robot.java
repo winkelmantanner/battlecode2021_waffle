@@ -1,6 +1,7 @@
 
 package tannerplayer;
 import battlecode.common.*;
+import java.lang.IllegalArgumentException;
 
 abstract public strictfp class Robot {
     RobotController rc;
@@ -8,6 +9,12 @@ abstract public strictfp class Robot {
     int last_round_conviction = 0;
     MapLocation where_i_spawned = null;
     boolean preferRotateRight = false;
+    double sensor_radius_nonsquared = -1;
+
+    int map_max_x = -1;
+    int map_min_x = -1;
+    int map_max_y = -1;
+    int map_min_y = -1;
 
     final int MAX_DEFENDER_INFLUENCE = 24;
     final int MIN_DEFENDER_INFLUENCE = 12;
@@ -41,6 +48,7 @@ abstract public strictfp class Robot {
         roundNumCreated = rc.getRoundNum();
         last_round_conviction = rc.getConviction();
         where_i_spawned = rc.getLocation();
+        sensor_radius_nonsquared = Math.sqrt(rc.getType().sensorRadiusSquared);
     }
 
     public int roundNumAtStartOfRound = -1;
@@ -64,10 +72,10 @@ abstract public strictfp class Robot {
 
     public void runRobotTurn() throws GameActionException {
         beforeRunTurn();
-        runTurn();
+        runTurnRobot();
         afterRunTurn();
     }
-    abstract public void runTurn() throws GameActionException;
+    abstract public void runTurnRobot() throws GameActionException;
 
 
     int getEcPassiveIncome(final int round_num) {
@@ -101,15 +109,17 @@ abstract public strictfp class Robot {
     void standardFlagReset() throws GameActionException {
         if(5 < rc.getRoundNum() - round_when_i_last_set_my_flag) {
             // Because trySetFlag sets round_when_i_last_set_my_flag, this runs once per 20 rounds
-            if(trySetFlag(0)) {
-                System.out.println("set my flag to 0");
-            }
+            trySetFlag(0);
         }
     }
 
     final int NEUTRAL_EC = 1;
     final int ENEMY_ROBOT = 2;
-    int getValueForFlag(
+    final int MAP_MAX_X = 3;
+    final int MAP_MIN_X = 4;
+    final int MAP_MAX_Y = 5;
+    final int MAP_MIN_Y = 6;
+    int getValueForFlagRelative(
         final int what_the_flag_represents,
         MapLocation loc
     ) {
@@ -126,6 +136,15 @@ abstract public strictfp class Robot {
         result <<= 8;
         result |= y;
 
+        return result;
+    }
+    int getValueForFlagRaw(
+        final int what_the_flag_represents,
+        final short last_2_bytes
+    ) {
+        int result = what_the_flag_represents;
+        result <<= 16;
+        result |= ((int)last_2_bytes) & 0xFFFF;
         return result;
     }
     MapLocation getMapLocationFromFlagValue(final int flag_value) {
@@ -149,7 +168,7 @@ abstract public strictfp class Robot {
             neutral_ec = rbt;
         }
         if(neutral_ec != null) {
-            int value_for_flag = getValueForFlag(
+            int value_for_flag = getValueForFlagRelative(
                 NEUTRAL_EC,
                 neutral_ec.location
             );
@@ -177,7 +196,7 @@ abstract public strictfp class Robot {
         }
         if(count > 0) {
             MapLocation enemy_centroid = new MapLocation(x_sum / count, y_sum / count);
-            int flag_val = getValueForFlag(
+            int flag_val = getValueForFlagRelative(
                 ENEMY_ROBOT,
                 enemy_centroid
             );
@@ -186,6 +205,65 @@ abstract public strictfp class Robot {
             }
         }
         return did_set_flag;
+    }
+
+    boolean flagMapEdges() throws GameActionException {
+        standardFlagReset();
+        return flagSpecificMapEdge(MAP_MAX_X)
+            || flagSpecificMapEdge(MAP_MIN_X)
+            || flagSpecificMapEdge(MAP_MAX_Y)
+            || flagSpecificMapEdge(MAP_MIN_Y);
+    }
+    boolean flagSpecificMapEdge(
+        final int which_edge // must be MAP_MAX_X, MAP_MIN_X, MAP_MAX_Y, or MAP_MIN_Y
+    ) throws GameActionException {
+        int dx = 0;
+        int dy = 0;
+        boolean is_y = false; 
+        switch(which_edge) {
+            case MAP_MAX_X:  dx =  1;  is_y = false;  break;
+            case MAP_MIN_X:  dx = -1;  is_y = false;  break;
+            case MAP_MAX_Y:  dy =  1;  is_y = true;   break;
+            case MAP_MIN_Y:  dy = -1;  is_y = true;   break;
+            default:
+                throw new IllegalArgumentException("flagMapEdge which_edge invalid value: " + String.valueOf(which_edge));
+        }
+        boolean did_set_flag = false;
+        MapLocation myLoc = rc.getLocation();
+        int extreme_value = -1;
+        boolean map_edge_detected = false;
+        for(
+            int k = (int)sensor_radius_nonsquared;
+            k >= 0;
+            k--
+        ) {
+            MapLocation l = myLoc.translate(dx*k, dy*k);
+            if(rc.onTheMap(l)) {
+                extreme_value = (is_y ? l.y : l.x);
+                break;
+            } else {
+                map_edge_detected = true;
+            }
+        }
+        if(map_edge_detected) {
+            int value_for_flag = getValueForFlagRaw(which_edge, (short)extreme_value);
+            if(trySetFlag(value_for_flag)) {
+                did_set_flag = true;
+            }
+        }
+        return did_set_flag;
+    }
+
+    boolean updateMapEdgesBasedOnFlagIfApplicable(final int flag_val) {
+        boolean did = false;
+        switch(flag_val >> 16) {
+            case MAP_MAX_X:  map_max_x = (flag_val & 0xFFFF);  did = true;  break;
+            case MAP_MIN_X:  map_min_x = (flag_val & 0xFFFF);  did = true;  break;
+            case MAP_MAX_Y:  map_max_y = (flag_val & 0xFFFF);  did = true;  break;
+            case MAP_MIN_Y:  map_min_y = (flag_val & 0xFFFF);  did = true;  break;
+            // default intentionally excluded
+        }
+        return did;
     }
 
     RobotInfo nearestRobot(

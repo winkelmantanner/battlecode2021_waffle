@@ -4,7 +4,6 @@ import battlecode.common.*;
 public strictfp class SlanPol extends Unit {
     RobotType last_round_type = null;
 
-    int id_of_ec_to_look_to = -1;
 
     boolean is_defender = false;
 
@@ -13,15 +12,6 @@ public strictfp class SlanPol extends Unit {
         last_round_type = rc.getType();
         is_defender = rc.getType().equals(RobotType.POLITICIAN)
             && (rc.getInfluence() <= MAX_DEFENDER_INFLUENCE);
-
-        for(RobotInfo rbt : rc.senseNearbyRobots(
-            RobotType.ENLIGHTENMENT_CENTER.actionRadiusSquared,
-            rc.getTeam()
-        )) {
-            if(RobotType.ENLIGHTENMENT_CENTER.equals(rbt.type)) {
-                id_of_ec_to_look_to = rbt.ID;
-            }
-        }
     }
 
     double getEmpowerConvAvailable() throws GameActionException {
@@ -206,9 +196,12 @@ public strictfp class SlanPol extends Unit {
     }
 
     public void runTurnPolitician() throws GameActionException {
+        mapEdgeFlagReceivingStuffNonEc();
+
         flagEnemies();
+        flagMapEdges();
         flagNeutralECs();
-        // The second flag overrides the first
+        // The later flag overrides the earlier
 
         empowerIfDamagedBeyondUsability();
 
@@ -232,6 +225,8 @@ public strictfp class SlanPol extends Unit {
     }
 
     public void runTurnSlanderer() throws GameActionException {
+        mapEdgeFlagReceivingStuffNonEc();
+
         flagEnemies();
 
         MapLocation myLoc = rc.getLocation();
@@ -256,7 +251,10 @@ public strictfp class SlanPol extends Unit {
         if (tryMove(randomDirection())) {}
     }
 
-    public void runTurn() throws GameActionException {
+    public void runTurnUnit() throws GameActionException {
+        if(!rc.getType().equals(last_round_type)) {
+            sensor_radius_nonsquared = Math.sqrt(rc.getType().sensorRadiusSquared);
+        }
         switch (rc.getType()) {
             case POLITICIAN: runTurnPolitician(); break;
             case SLANDERER:  runTurnSlanderer();  break;
