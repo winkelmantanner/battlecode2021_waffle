@@ -9,6 +9,9 @@ abstract public strictfp class Robot {
     MapLocation where_i_spawned = null;
     boolean preferRotateRight = false;
 
+    final int MAX_DEFENDER_INFLUENCE = 24;
+    final int MIN_DEFENDER_INFLUENCE = 12;
+
     static final RobotType[] spawnableRobot = {
         RobotType.POLITICIAN,
         RobotType.SLANDERER,
@@ -78,6 +81,12 @@ abstract public strictfp class Robot {
     public double recipDecay(final double x, final double half_life) {
         return half_life / (x + half_life);
     }
+    public double uniformRandom(final double min, final double max) {
+        return (Math.random() * (max - min)) + min;
+    }
+    public int randInt(final int min, final int max) {
+        return (int)uniformRandom(min, max + 1);
+    }
 
     int round_when_i_last_set_my_flag = -1;
     public boolean trySetFlag(final int flag_val) throws GameActionException {
@@ -104,6 +113,9 @@ abstract public strictfp class Robot {
         final int what_the_flag_represents,
         MapLocation loc
     ) {
+        // where_i_spawned will be close to, but not exactly, the same for units from the same EC.
+        // So there will be known error because of where_i_spawned.
+
         // These two variables need to be int type.
         // If they are byte type, if they are negative they will be incorrectly casted to a negative int.
         int x = 0b11111111 & (loc.x - where_i_spawned.x);
@@ -190,7 +202,7 @@ abstract public strictfp class Robot {
             radiusSquared,
             team
         )) {
-            if(type == null || rbt.type == type) {
+            if(type == null || type.equals(rbt.type)) {
                 int dist2 = nonnull_center.distanceSquaredTo(rbt.location);
                 if(dist2 < dist2_to_nearest) {
                     nearest = rbt;
