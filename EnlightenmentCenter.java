@@ -4,7 +4,6 @@ import battlecode.common.*;
 public strictfp class EnlightenmentCenter extends Robot {
     final int SHIELD_FACTOR = 50;
     final int STANDARD_POLITICIAN_INFLUENCE = 50;
-    final int OPTIMAL_SLANDERER_INFLUENCE = 21; // https://www.desmos.com/calculator/ydkbaqrx7v
     final int MUCKRAKER_INFLUENCE = 1;
 
     // This does not get initialized.
@@ -21,18 +20,23 @@ public strictfp class EnlightenmentCenter extends Robot {
 
     int shield_conviction = 0;
 
+    boolean should_build_slans = true;
+    final int [] SLAN_STEPS = {21, 107, 400}; // https://www.desmos.com/calculator/ydkbaqrx7v
+    int getAmountToPutInSlan(final int available_influence) {
+        int amount = SLAN_STEPS[0];
+        for(int k = 0; k < SLAN_STEPS.length; k++) {
+            if(available_influence >= SLAN_STEPS[k]) {
+                amount = SLAN_STEPS[k];
+            }
+        }
+        return amount;
+    }
+
     int numRobotsBuilt = 0;
     int [] robots_i_built = new int[GameConstants.MAP_MAX_WIDTH * GameConstants.MAP_MAX_HEIGHT];
     int current_built_robot_array_index = 0;
-    void doFlagStuff() throws GameActionException {
+    void doFlagStuff(RobotInfo nearest_enemy) throws GameActionException {
         standardFlagReset();
-
-        RobotInfo nearest_enemy = nearestRobot(
-            null,
-            -1,
-            rc.getTeam().opponent(),
-            null
-        );
 
         while(
             current_built_robot_array_index < numRobotsBuilt
@@ -43,8 +47,12 @@ public strictfp class EnlightenmentCenter extends Robot {
             if(rc.canGetFlag(target_robot_id)) {
                 int flag_val = rc.getFlag(target_robot_id);
                 if(flag_val != 0) {
-                    if(flag_val >> 16 == ENEMY_ROBOT && nearest_enemy != null) {
+                    if(
+                        flag_val >> 16 == ENEMY_ROBOT
+                        && nearest_enemy != null
+                    ) {
                         // If we (the EC) see an enemy, flag it instead of what other robots say. 
+                        // This only runs if we san an ENEMY_ROBOT flag from another robot.
                         flag_val = getValueForFlag(
                             ENEMY_ROBOT,
                             nearest_enemy.location
@@ -107,19 +115,29 @@ public strictfp class EnlightenmentCenter extends Robot {
         return are_all_4_cardinals_occupied;
     }
 
+    boolean built_slan_last = false;
+    int round_when_i_last_built_slan = -12345;
 
     public void runTurn() throws GameActionException {
         shield_conviction = SHIELD_FACTOR * getEcPassiveIncome(rc.getRoundNum());
         System.out.println("passive ec income: " + String.valueOf(getEcPassiveIncome(rc.getRoundNum())) + " shield:" + String.valueOf(shield_conviction));
         int available_influence = rc.getInfluence() - shield_conviction;
 
-        //At the very beginning, build a few slanderers
-        if(rc.getRoundNum() <= 3) {
-            myBuild(
+        // This is used in more than one place
+        RobotInfo nearest_enemy = nearestRobot(null, -1, rc.getTeam().opponent(), null);
+
+        if(nearest_enemy != null) {
+            should_build_slans = false;
+        }
+        if(should_build_slans && !built_slan_last) {
+            if(myBuild(
                 RobotType.SLANDERER,
-                OPTIMAL_SLANDERER_INFLUENCE,
+                getAmountToPutInSlan(available_influence),
                 diagonal_directions
-            );
+            )) {
+                round_when_i_last_built_slan = rc.getRoundNum();
+                built_slan_last = true;
+            }
         } else if(!getIfAll4CardinalDirectionsAreOccupied()) {
             // Make sure we have the basic shield of muckrakers
             myBuild(
@@ -140,7 +158,10 @@ public strictfp class EnlightenmentCenter extends Robot {
                 influence_to_put_into_next_politician,
                 directions
             )) {
-                if(influence_to_put_into_next_politician <= MAX_DEFENDER_INFLUENCE) {
+                built_slan_last = false;
+                if(rc.getRoundNum() - round_when_i_last_built_slan > 0.75 * GameConstants.CAMOUFLAGE_NUM_ROUNDS
+                    || influence_to_put_into_next_politician <= MAX_DEFENDER_INFLUENCE
+                ) {
                     influence_to_put_into_next_politician = STANDARD_POLITICIAN_INFLUENCE;
                 } else {
                     influence_to_put_into_next_politician = randInt(
@@ -198,6 +219,6 @@ public strictfp class EnlightenmentCenter extends Robot {
         last_round_team_votes = rc.getTeamVotes();
 
         // This needs to be last since it goes until the bytecode limit is hit
-        doFlagStuff();
+        doFlagStuff(nearest_enemy);
     }
 }
