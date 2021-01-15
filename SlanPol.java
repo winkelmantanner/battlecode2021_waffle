@@ -27,9 +27,9 @@ public strictfp class SlanPol extends Unit {
     double getEmpowerConvAvailable() throws GameActionException {
         return (
             rc.getConviction() * rc.getEmpowerFactor(rc.getTeam(), 0)
-        ) - 10;
+        ) - GameConstants.EMPOWER_TAX;
     }
-    void empowerIfApplicable() throws GameActionException {
+    void attackerEmpower() throws GameActionException {
         final double conv_available = getEmpowerConvAvailable();
         for(int r_unsquared = 1; r_unsquared * r_unsquared <= rc.getType().actionRadiusSquared; r_unsquared++) {
             int actionR2 = r_unsquared * r_unsquared;
@@ -73,6 +73,13 @@ public strictfp class SlanPol extends Unit {
                 System.out.println("empowering  my conviction:" + String.valueOf(rc.getConviction()) + " actionR2:" + String.valueOf(actionR2) + " transferrableConviction:" + String.valueOf(transferrableConviction) + " conv_available:" + String.valueOf(conv_available) + " rbts_len:" + String.valueOf(rbts_len));
                 rc.empower(actionR2);
             }
+        }
+    }
+
+    void empowerIfDamagedBeyondUsability() throws GameActionException {
+        if(getEmpowerConvAvailable() <= 0 && rc.canEmpower(1)) {
+            rc.empower(1);
+            System.out.println("Empowered due to being damaged beyond usability");
         }
     }
 
@@ -203,6 +210,8 @@ public strictfp class SlanPol extends Unit {
         flagNeutralECs();
         // The second flag overrides the first
 
+        empowerIfDamagedBeyondUsability();
+
         if(is_defender) { // influence is not reduced by damage
             // I'm a defender
             empowerOnThreateningMuckrakers();
@@ -212,7 +221,7 @@ public strictfp class SlanPol extends Unit {
             spreadNearHome();
         } else {
             // I'm an attacker
-            empowerIfApplicable();
+            attackerEmpower();
 
             moveTowardNonfriendlyEcs();
 
