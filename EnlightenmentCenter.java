@@ -32,46 +32,62 @@ public strictfp class EnlightenmentCenter extends Robot {
         return amount;
     }
 
+    boolean broadcastMapEdgeIfApplicable(
+        final int which_edge,
+        final int value
+    ) throws GameActionException {
+        boolean did_broadcast = false;
+        if(value >= 0) { // The value for "unknown" must be -1
+            did_broadcast = trySetFlag(getValueForFlagRaw(which_edge, (short)value));
+        }
+        return did_broadcast;
+    }
     int numRobotsBuilt = 0;
     int [] robots_i_built = new int[GameConstants.MAP_MAX_WIDTH * GameConstants.MAP_MAX_HEIGHT];
     int current_built_robot_array_index = 0;
     void doFlagStuff(RobotInfo nearest_enemy) throws GameActionException {
         standardFlagReset();
-
-        while(
-            current_built_robot_array_index < numRobotsBuilt
-            && Clock.getBytecodesLeft() > 1000
-            && rc.getRoundNum() != round_when_i_last_set_my_flag
-        ) {
-            int target_robot_id = robots_i_built[current_built_robot_array_index];
-            if(rc.canGetFlag(target_robot_id)) {
-                int flag_val = rc.getFlag(target_robot_id);
-                if(flag_val != 0) {
-                    if(
-                        flag_val >> 16 == ENEMY_ROBOT
-                        && nearest_enemy != null
-                    ) {
-                        // If we (the EC) see an enemy, flag it instead of what other robots say. 
-                        // This only runs if we san an ENEMY_ROBOT flag from another robot.
-                        flag_val = getValueForFlag(
-                            ENEMY_ROBOT,
-                            nearest_enemy.location
-                        );
-                        System.out.println("flagged enemy I saw at " + nearest_enemy.location.toString());
-                    } else {
-                        System.out.println("copying flag from robot " + String.valueOf(target_robot_id));
+        switch(rc.getRoundNum() % 10) {
+            case MAP_MAX_X:  broadcastMapEdgeIfApplicable(MAP_MAX_X, map_max_x);  break;
+            case MAP_MIN_X:  broadcastMapEdgeIfApplicable(MAP_MIN_X, map_min_x);  break;
+            case MAP_MAX_Y:  broadcastMapEdgeIfApplicable(MAP_MAX_Y, map_max_y);  break;
+            case MAP_MIN_Y:  broadcastMapEdgeIfApplicable(MAP_MIN_Y, map_min_y);  break;
+            default:
+                while(
+                    current_built_robot_array_index < numRobotsBuilt
+                    && Clock.getBytecodesLeft() > 1000
+                    && rc.getRoundNum() != round_when_i_last_set_my_flag
+                ) {
+                    int target_robot_id = robots_i_built[current_built_robot_array_index];
+                    if(rc.canGetFlag(target_robot_id)) {
+                        int flag_val = rc.getFlag(target_robot_id);
+                        if(flag_val != 0) {
+                            boolean was_flag_map_edge = updateMapEdgesBasedOnFlagIfApplicable(flag_val);
+                            if(!was_flag_map_edge) {
+                                if(flag_val >> 16 == ENEMY_ROBOT
+                                    && nearest_enemy != null
+                                ) {
+                                    // If we (the EC) see an enemy, flag it instead of what other robots say. 
+                                    // This only runs if we san an ENEMY_ROBOT flag from another robot.
+                                    flag_val = getValueForFlagRelative(
+                                        ENEMY_ROBOT,
+                                        nearest_enemy.location
+                                    );
+                                }
+                                if(trySetFlag(flag_val)) {
+                                    // Because trySetFlag sets round_when_i_last_set_my_flag,
+                                    //   the loop will exit after this iteration.
+                                    // The ++ statement at the end needs to execute still.
+                                }
+                            }
+                        }
                     }
-                    if(trySetFlag(flag_val)) {
-                        // Because trySetFlag sets round_when_i_last_set_my_flag,
-                        //   the loop will exit after this iteration.
-                        // The ++ statement at the end needs to execute still.
-                    }
+                    current_built_robot_array_index++;
                 }
-            }
-            current_built_robot_array_index++;
-        }
-        if(current_built_robot_array_index >= numRobotsBuilt) {
-            current_built_robot_array_index = 0;
+                if(current_built_robot_array_index >= numRobotsBuilt) {
+                    current_built_robot_array_index = 0;
+                }
+                break;
         }
     }
 
@@ -118,7 +134,7 @@ public strictfp class EnlightenmentCenter extends Robot {
     boolean built_slan_last = false;
     int round_when_i_last_built_slan = -12345;
 
-    public void runTurn() throws GameActionException {
+    public void runTurnRobot() throws GameActionException {
         shield_conviction = SHIELD_FACTOR * getEcPassiveIncome(rc.getRoundNum());
         System.out.println("passive ec income: " + String.valueOf(getEcPassiveIncome(rc.getRoundNum())) + " shield:" + String.valueOf(shield_conviction));
         int available_influence = rc.getInfluence() - shield_conviction;

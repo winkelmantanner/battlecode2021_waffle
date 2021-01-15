@@ -29,8 +29,11 @@ public strictfp class Muckraker extends Unit {
     }
 
 
-    public void runTurn() throws GameActionException {
+    public void runTurnUnit() throws GameActionException {
+        mapEdgeFlagReceivingStuffNonEc();
+
         flagEnemies();
+        flagMapEdges();
         flagNeutralECs();
         // The second flag overrides the first
 

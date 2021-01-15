@@ -6,6 +6,35 @@ import battlecode.common.*;
 abstract public strictfp class Unit extends Robot {
     Unit(RobotController rbt_controller) {
         super(rbt_controller);
+        for(RobotInfo rbt : rc.senseNearbyRobots(
+            RobotType.ENLIGHTENMENT_CENTER.actionRadiusSquared,
+            rc.getTeam()
+        )) {
+            if(RobotType.ENLIGHTENMENT_CENTER.equals(rbt.type)) {
+                id_of_ec_to_look_to = rbt.ID;
+            }
+        }
+    }
+
+    int id_of_ec_to_look_to = -1;
+
+    public int roundNumAtStartOfRound = -1;
+    public void unitBeforeRunTurn() {
+    }
+    public void unitAfterRunTurn() {
+    }
+    public void runTurnRobot() throws GameActionException{
+        unitBeforeRunTurn();
+        runTurnUnit();
+        unitAfterRunTurn();
+    }
+    abstract public void runTurnUnit() throws GameActionException;
+
+    void mapEdgeFlagReceivingStuffNonEc() throws GameActionException {
+        if(rc.canGetFlag(id_of_ec_to_look_to)) {
+            int flag_val = rc.getFlag(id_of_ec_to_look_to);
+            updateMapEdgesBasedOnFlagIfApplicable(flag_val);
+        }
     }
 
 
