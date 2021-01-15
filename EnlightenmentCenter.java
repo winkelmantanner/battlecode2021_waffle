@@ -140,7 +140,14 @@ public strictfp class EnlightenmentCenter extends Robot {
                 influence_to_put_into_next_politician,
                 directions
             )) {
-                influence_to_put_into_next_politician = STANDARD_POLITICIAN_INFLUENCE;
+                if(influence_to_put_into_next_politician <= MAX_DEFENDER_INFLUENCE) {
+                    influence_to_put_into_next_politician = STANDARD_POLITICIAN_INFLUENCE;
+                } else {
+                    influence_to_put_into_next_politician = randInt(
+                        MIN_DEFENDER_INFLUENCE,
+                        MAX_DEFENDER_INFLUENCE
+                    );
+                }
                 System.out.println("I want to put " + String.valueOf(influence_to_put_into_next_politician) + " into my next pol");
             }
         } else if(available_influence >= MUCKRAKER_INFLUENCE) {
