@@ -35,18 +35,20 @@ abstract public strictfp class Unit extends Robot {
     }
 
     Direction explore_dir = null;
-    boolean need_dir = true;
     boolean exploreMove() throws GameActionException {
-        if(need_dir) {
-            explore_dir = randomDirection();
-            need_dir = false;
-        }
         boolean moved = false;
-        if(rc.canMove(explore_dir)) {
-            rc.move(explore_dir);
-            moved = true;
-        } else if(rc.isReady()) {
-            need_dir = true;
+        if(explore_dir == null) {
+            explore_dir = directions[rc.getID() % directions.length];
+        }
+        if(rc.isReady()) {
+            for(int k = 0; k < directions.length; k++) {
+                if(tryMove(explore_dir)) {
+                    moved = true;
+                    break;
+                } else {
+                    explore_dir = randomDirection();
+                }
+            }
         }
         return moved;
     }
