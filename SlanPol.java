@@ -237,7 +237,7 @@ public strictfp class SlanPol extends Unit {
             }
         }
         if(loc_of_nearest_enemy_mr != null) {
-            if(tryMove(myLoc.directionTo(loc_of_nearest_enemy_mr).opposite())) {
+            if(fuzzyStep(myLoc.directionTo(loc_of_nearest_enemy_mr).opposite())) {
                 System.out.println("Ran from enemy muckraker at " + loc_of_nearest_enemy_mr.toString());
             }
         }
