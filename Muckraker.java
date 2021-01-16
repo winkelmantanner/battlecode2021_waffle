@@ -11,12 +11,6 @@ public strictfp class Muckraker extends Unit {
         System.out.println("is_cruncher:" + String.valueOf(is_cruncher));
     }
 
-
-    boolean getIfEcIsInCardinalDirection(final Team team) throws GameActionException {
-        RobotInfo ec_or_null = nearestRobot(null, 2, team, RobotType.ENLIGHTENMENT_CENTER);
-        return (ec_or_null != null);
-    }
-
     boolean knowMapDims() {
         return map_max_x != UNKNOWN
             && map_min_x != UNKNOWN
@@ -114,8 +108,10 @@ public strictfp class Muckraker extends Unit {
         if(
             nearest_enemy == null
             || (
-                !getIfEcIsInCardinalDirection(rc.getTeam())
-                && !getIfEcIsInCardinalDirection(enemy)
+                // We're not in a cardinal direction from a friendly EC
+                null == nearestRobot(null, 1, rc.getTeam(), RobotType.ENLIGHTENMENT_CENTER)
+                // We're not blocking an enemy EC
+                && null == nearestRobot(null, 2, enemy, RobotType.ENLIGHTENMENT_CENTER)
             )
         ) {
             // Move only if not a guard
