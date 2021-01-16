@@ -34,11 +34,11 @@ public strictfp class EnlightenmentCenter extends Robot {
 
     boolean broadcastMapEdgeIfApplicable(
         final int which_edge,
-        final int value
+        final int coord
     ) throws GameActionException {
         boolean did_broadcast = false;
-        if(value >= 0) { // The value for "unknown" must be -1
-            did_broadcast = trySetFlag(getValueForFlagRaw(which_edge, (short)value));
+        if(coord != UNKNOWN) {
+            did_broadcast = trySetFlag(getValueForFlagRaw(which_edge, (short)coord));
         }
         return did_broadcast;
     }

@@ -11,10 +11,11 @@ abstract public strictfp class Robot {
     boolean preferRotateRight = false;
     double sensor_radius_nonsquared = -1;
 
-    int map_max_x = -1;
-    int map_min_x = -1;
-    int map_max_y = -1;
-    int map_min_y = -1;
+    final int UNKNOWN = -1;
+    int map_max_x = UNKNOWN;
+    int map_min_x = UNKNOWN;
+    int map_max_y = UNKNOWN;
+    int map_min_y = UNKNOWN;
 
     final int MAX_DEFENDER_INFLUENCE = 24;
     final int MIN_DEFENDER_INFLUENCE = 12;
@@ -230,7 +231,7 @@ abstract public strictfp class Robot {
         }
         boolean did_set_flag = false;
         MapLocation myLoc = rc.getLocation();
-        int extreme_value = -1;
+        int extreme_value = UNKNOWN;
         boolean map_edge_detected = false;
         for(
             int k = (int)sensor_radius_nonsquared;
