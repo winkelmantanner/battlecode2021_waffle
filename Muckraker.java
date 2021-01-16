@@ -12,23 +12,9 @@ public strictfp class Muckraker extends Unit {
     }
 
 
-    boolean getIfFriendlyEcIsInCardinalDirection() throws GameActionException {
-        boolean is_friendly_ec_in_card_dir = false;
-        for(Direction card_dir : Direction.cardinalDirections()) {
-            MapLocation ml = rc.adjacentLocation(card_dir);
-            if(rc.canSenseLocation(ml)) {
-                RobotInfo rbt = rc.senseRobotAtLocation(ml);
-                if(
-                    rbt != null
-                    && rbt.type.equals(RobotType.ENLIGHTENMENT_CENTER)
-                    && rbt.team.equals(rc.getTeam())
-                ) {
-                    is_friendly_ec_in_card_dir = true;
-                    break;
-                }
-            }
-        }
-        return is_friendly_ec_in_card_dir;
+    boolean getIfEcIsInCardinalDirection(final Team team) throws GameActionException {
+        RobotInfo ec_or_null = nearestRobot(null, 2, team, RobotType.ENLIGHTENMENT_CENTER);
+        return (ec_or_null != null);
     }
 
     boolean knowMapDims() {
@@ -72,7 +58,7 @@ public strictfp class Muckraker extends Unit {
                     if(rc.getLocation().isAdjacentTo(rbt.location)) {
                         is_adj_to_enemy_ec = true;
                         System.out.println("is_adj_to_enemy_ec:" + String.valueOf(is_adj_to_enemy_ec) + "; I'm done moving");
-                        // We're done moving!
+                        // Don't move.
                     }
                 } else {
                     // We sense that the enemy EC is not there
@@ -123,10 +109,14 @@ public strictfp class Muckraker extends Unit {
             }
         }
 
+        RobotInfo nearest_enemy = nearestRobot(null, -1, enemy, null);
 
         if(
-            !getIfFriendlyEcIsInCardinalDirection()
-            && !is_adj_to_enemy_ec
+            nearest_enemy == null
+            || (
+                !getIfEcIsInCardinalDirection(rc.getTeam())
+                && !getIfEcIsInCardinalDirection(enemy)
+            )
         ) {
             // Move only if not a guard
 

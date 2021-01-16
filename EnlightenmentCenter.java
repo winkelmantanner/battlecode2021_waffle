@@ -92,6 +92,7 @@ public strictfp class EnlightenmentCenter extends Robot {
     }
 
     boolean should_build_pols = true;
+    int total_inf_spent_on_pols = 0;
     int influence_to_put_into_next_politician = STANDARD_POLITICIAN_INFLUENCE;
     boolean myBuild(final RobotType type, final int influence, final Direction [] dirs) throws GameActionException {
         double max_passability = 0;
@@ -154,7 +155,10 @@ public strictfp class EnlightenmentCenter extends Robot {
                 round_when_i_last_built_slan = rc.getRoundNum();
                 built_slan_last = true;
             }
-        } else if(!getIfAll4CardinalDirectionsAreOccupied()) {
+        } else if(
+            nearest_enemy != null
+            && !getIfAll4CardinalDirectionsAreOccupied()
+        ) {
             // Make sure we have the basic shield of muckrakers
             myBuild(
                 RobotType.MUCKRAKER,
@@ -163,6 +167,10 @@ public strictfp class EnlightenmentCenter extends Robot {
             );
         } else if(
             should_build_pols
+            && (
+                total_inf_spent_on_pols < 1000
+                || rc.getTeamVotes() > rc.getRoundNum() * 0.6
+            )
             && available_influence
               > shield_conviction
               // This will mean 2*sheild_conviction is required to build pols
@@ -175,6 +183,7 @@ public strictfp class EnlightenmentCenter extends Robot {
                 directions
             )) {
                 built_slan_last = false;
+                total_inf_spent_on_pols += influence_to_put_into_next_politician;
                 if(rc.getRoundNum() - round_when_i_last_built_slan > 0.75 * GameConstants.CAMOUFLAGE_NUM_ROUNDS
                     || influence_to_put_into_next_politician <= MAX_DEFENDER_INFLUENCE
                 ) {
