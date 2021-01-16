@@ -10,6 +10,8 @@ public strictfp class EnlightenmentCenter extends Robot {
     // Use it to determine if other friendly ECs are bidding.
     int last_round_team_votes = 0;
 
+    double passability_of_my_tile = -1;
+
     boolean i_should_bid = false;
     boolean i_bidded_last_round = false;
     int round_when_i_last_bidded = -1;
@@ -93,7 +95,8 @@ public strictfp class EnlightenmentCenter extends Robot {
 
     boolean should_build_pols = true;
     int total_inf_spent_on_pols = 0;
-    int influence_to_put_into_next_politician = STANDARD_POLITICIAN_INFLUENCE;
+    int num_defenders_built = 0;
+    int last_pol_inf = -1;
     boolean myBuild(final RobotType type, final int influence, final Direction [] dirs) throws GameActionException {
         double max_passability = 0;
         Direction best_build_dir = null;
@@ -132,13 +135,18 @@ public strictfp class EnlightenmentCenter extends Robot {
         return are_all_4_cardinals_occupied;
     }
 
-    boolean built_slan_last = false;
+    final int SLAN_BUILD_INTERVAL = 3;
     int round_when_i_last_built_slan = -12345;
 
     public void runTurnRobot() throws GameActionException {
         shield_conviction = SHIELD_FACTOR * getEcPassiveIncome(rc.getRoundNum());
         System.out.println("passive ec income: " + String.valueOf(getEcPassiveIncome(rc.getRoundNum())) + " shield:" + String.valueOf(shield_conviction));
         int available_influence = rc.getInfluence() - shield_conviction;
+        if(passability_of_my_tile < 0
+            && rc.canSenseLocation(rc.getLocation())
+        ) {
+            passability_of_my_tile = rc.sensePassability(rc.getLocation());
+        }
 
         // This is used in more than one place
         RobotInfo nearest_enemy = nearestRobot(null, -1, rc.getTeam().opponent(), null);
@@ -146,14 +154,16 @@ public strictfp class EnlightenmentCenter extends Robot {
         if(nearest_enemy != null) {
             should_build_slans = false;
         }
-        if(should_build_slans && !built_slan_last) {
+        if(should_build_slans
+            && rc.getRoundNum() - round_when_i_last_built_slan >= SLAN_BUILD_INTERVAL / passability_of_my_tile
+            && available_influence >= shield_conviction + SLAN_STEPS[0]
+        ) {
             if(myBuild(
                 RobotType.SLANDERER,
                 getAmountToPutInSlan(available_influence),
                 diagonal_directions
             )) {
                 round_when_i_last_built_slan = rc.getRoundNum();
-                built_slan_last = true;
             }
         } else if(
             nearest_enemy != null
@@ -168,7 +178,7 @@ public strictfp class EnlightenmentCenter extends Robot {
         } else if(
             should_build_pols
             && (
-                total_inf_spent_on_pols < 1000
+                total_inf_spent_on_pols < 1000 + rc.getRoundNum()
                 || rc.getTeamVotes() > rc.getRoundNum() * 0.6
             )
             && available_influence
@@ -176,27 +186,29 @@ public strictfp class EnlightenmentCenter extends Robot {
               // This will mean 2*sheild_conviction is required to build pols
               // The total influence will converge on 2*shield_conviction by the bidding code
         ) {
-            System.out.println("I have enough inf");
+            System.out.println("I have enough inf for a politician");
+            int influence = STANDARD_POLITICIAN_INFLUENCE;
+            boolean building_defender = false;
+            if(rc.getRoundNum() - round_when_i_last_built_slan <= 0.75 * GameConstants.CAMOUFLAGE_NUM_ROUNDS
+                && last_pol_inf > MAX_DEFENDER_INFLUENCE
+            ) {
+                influence = randInt(MIN_DEFENDER_INFLUENCE, MAX_DEFENDER_INFLUENCE);
+                building_defender = true;
+            }
             if(myBuild(
                 RobotType.POLITICIAN,
-                influence_to_put_into_next_politician,
+                influence,
                 directions
             )) {
-                built_slan_last = false;
-                total_inf_spent_on_pols += influence_to_put_into_next_politician;
-                if(rc.getRoundNum() - round_when_i_last_built_slan > 0.75 * GameConstants.CAMOUFLAGE_NUM_ROUNDS
-                    || influence_to_put_into_next_politician <= MAX_DEFENDER_INFLUENCE
-                ) {
-                    influence_to_put_into_next_politician = STANDARD_POLITICIAN_INFLUENCE;
-                } else {
-                    influence_to_put_into_next_politician = randInt(
-                        MIN_DEFENDER_INFLUENCE,
-                        MAX_DEFENDER_INFLUENCE
-                    );
+                last_pol_inf = influence;
+                if(building_defender) {
+                    num_defenders_built++;
                 }
-                System.out.println("I want to put " + String.valueOf(influence_to_put_into_next_politician) + " into my next pol");
+                total_inf_spent_on_pols += influence;
             }
-        } else if(available_influence >= MUCKRAKER_INFLUENCE) {
+        } else if(
+            rc.getInfluence() >= 5 + MUCKRAKER_INFLUENCE // Note: this is NOT available_influence
+        ) {
             myBuild(
                 RobotType.MUCKRAKER,
                 MUCKRAKER_INFLUENCE,
