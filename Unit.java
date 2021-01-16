@@ -12,11 +12,13 @@ abstract public strictfp class Unit extends Robot {
         )) {
             if(RobotType.ENLIGHTENMENT_CENTER.equals(rbt.type)) {
                 id_of_ec_to_look_to = rbt.ID;
+                loc_of_ec_to_look_to = rbt.location;
             }
         }
     }
 
     int id_of_ec_to_look_to = -1;
+    MapLocation loc_of_ec_to_look_to = null;
 
     public int roundNumAtStartOfRound = -1;
     public void unitBeforeRunTurn() {
