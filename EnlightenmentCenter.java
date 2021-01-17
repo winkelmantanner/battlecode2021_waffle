@@ -151,7 +151,12 @@ public strictfp class EnlightenmentCenter extends Robot {
         // This is used in more than one place
         RobotInfo nearest_enemy = nearestRobot(null, -1, rc.getTeam().opponent(), null);
 
-        if(nearest_enemy != null) {
+        if(nearest_enemy != null
+            || rc.getRoundNum() > 50
+        ) {
+            if(should_build_slans) {
+                System.out.println("SLANDERER 50 round limit hit!!");
+            }
             should_build_slans = false;
         }
         if(should_build_slans
