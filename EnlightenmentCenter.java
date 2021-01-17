@@ -151,6 +151,10 @@ public strictfp class EnlightenmentCenter extends Robot {
         // This is used in more than one place
         RobotInfo nearest_enemy = nearestRobot(null, -1, rc.getTeam().opponent(), null);
 
+        boolean do_exponential_growth_by_buff = (
+            10 <= rc.getEmpowerFactor(rc.getTeam(), 2 + (int)RobotType.POLITICIAN.initialCooldown)
+        );
+
         if(nearest_enemy != null
             || rc.getRoundNum() > 50
         ) {
@@ -180,6 +184,18 @@ public strictfp class EnlightenmentCenter extends Robot {
                 1,
                 Direction.cardinalDirections()
             );
+        } else if(
+            do_exponential_growth_by_buff
+            && available_influence >= STANDARD_POLITICIAN_INFLUENCE
+        ) {
+            // This won't do anything if all cardinal dirs are occupied (e.g. by shield muckrakers)
+            if(myBuild(
+                RobotType.POLITICIAN,
+                available_influence,
+                Direction.cardinalDirections()
+            )) {
+                System.out.println("I built a politician for exponential growth by empower buff");
+            }
         } else if(
             should_build_pols
             && (

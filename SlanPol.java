@@ -73,6 +73,21 @@ public strictfp class SlanPol extends Unit {
         }
     }
 
+    final double SELF_EMPOWER_MIN_MULTIPLIER = 1.25;
+    void empowerOnHomeEcIfBuffedEnough() throws GameActionException {
+        int target_dist2 = rc.getLocation().distanceSquaredTo(loc_of_ec_to_look_to);
+        if(target_dist2 <= 2) {
+            final double conv_available = getEmpowerConvAvailable();
+            RobotInfo [] rbts = rc.senseNearbyRobots(target_dist2);
+            if(conv_available / rbts.length > SELF_EMPOWER_MIN_MULTIPLIER * rc.getInfluence()
+                && rc.canEmpower(target_dist2)
+            ) {
+                System.out.println("I empowered on a friendly EC!!!");
+                rc.empower(target_dist2);
+            }
+        }
+    }
+
     final int THREATENING_MR_FOLLOW_DIST2 = 11*11;
     final int THREATENING_MR_EMPOWER_DIST2 = 9*9;
     void empowerOnThreateningMuckrakers() throws GameActionException {
@@ -204,6 +219,8 @@ public strictfp class SlanPol extends Unit {
         // The later flag overrides the earlier
 
         empowerIfDamagedBeyondUsability();
+
+        empowerOnHomeEcIfBuffedEnough();
 
         if(is_defender) { // influence is not reduced by damage
             // I'm a defender
