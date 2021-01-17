@@ -14,7 +14,7 @@ public strictfp class EnlightenmentCenter extends Robot {
 
     boolean i_should_bid = false;
     boolean i_bidded_last_round = false;
-    int round_when_i_last_bidded = -1;
+    int round_when_i_last_bidded = -12345;
 
     EnlightenmentCenter(RobotController rbt_controller) {
         super(rbt_controller);
@@ -183,7 +183,7 @@ public strictfp class EnlightenmentCenter extends Robot {
         } else if(
             should_build_pols
             && (
-                total_inf_spent_on_pols < 1000 + rc.getRoundNum()
+                total_inf_spent_on_pols < 500 + rc.getRoundNum()
                 || rc.getTeamVotes() > rc.getRoundNum() * 0.6
             )
             && available_influence
