@@ -199,7 +199,7 @@ public strictfp class EnlightenmentCenter extends Robot {
         } else if(
             should_build_pols
             && (
-                total_inf_spent_on_pols < 500 + rc.getRoundNum()
+                rc.getRoundNum() < 0.5 * GameConstants.GAME_MAX_NUMBER_OF_ROUNDS
                 || rc.getTeamVotes() > rc.getRoundNum() * 0.6
             )
             && available_influence
@@ -207,7 +207,7 @@ public strictfp class EnlightenmentCenter extends Robot {
               // This will mean 2*sheild_conviction is required to build pols
               // The total influence will converge on 2*shield_conviction by the bidding code
         ) {
-            System.out.println("I have enough inf for a politician");
+            System.out.println("I have enough inf for a politician total_inf_spent_on_pols:" + String.valueOf(total_inf_spent_on_pols));
             int influence = STANDARD_POLITICIAN_INFLUENCE;
             boolean building_defender = false;
             if(rc.getRoundNum() - round_when_i_last_built_slan <= 0.75 * GameConstants.CAMOUFLAGE_NUM_ROUNDS
@@ -228,7 +228,8 @@ public strictfp class EnlightenmentCenter extends Robot {
                 total_inf_spent_on_pols += influence;
             }
         } else if(
-            rc.getInfluence() >= 5 + MUCKRAKER_INFLUENCE // Note: this is NOT available_influence
+            rc.getRoundNum() < 0.5 * GameConstants.GAME_MAX_NUMBER_OF_ROUNDS
+            && rc.getInfluence() >= 5 + MUCKRAKER_INFLUENCE // Note: this is NOT available_influence
         ) {
             myBuild(
                 RobotType.MUCKRAKER,
