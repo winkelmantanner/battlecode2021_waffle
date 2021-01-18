@@ -23,7 +23,7 @@ public strictfp class EnlightenmentCenter extends Robot {
     int shield_conviction = 0;
 
     boolean should_build_slans = true;
-    final int [] SLAN_STEPS = {21, 107, 400}; // https://www.desmos.com/calculator/ydkbaqrx7v
+    final int [] SLAN_STEPS = {21, 41, 63, 85, 107, 154, 228, 282, 339, 400}; // https://www.desmos.com/calculator/ydkbaqrx7v
     int getAmountToPutInSlan(final int available_influence) {
         int amount = SLAN_STEPS[0];
         for(int k = 0; k < SLAN_STEPS.length; k++) {
