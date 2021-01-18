@@ -10,8 +10,11 @@ public strictfp class SlanPol extends Unit {
     SlanPol(RobotController rbt_controller) {
         super(rbt_controller);
         last_round_type = rc.getType();
-        is_defender = rc.getType().equals(RobotType.POLITICIAN)
-            && (rc.getInfluence() <= MAX_DEFENDER_INFLUENCE);
+        is_defender = (
+            id_of_ec_to_look_to != -1
+            && rc.getType().equals(RobotType.POLITICIAN)
+            && (rc.getInfluence() <= MAX_DEFENDER_INFLUENCE)
+        );
     }
 
     double getEmpowerConvAvailable() throws GameActionException {
