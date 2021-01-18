@@ -15,6 +15,7 @@ public strictfp class SlanPol extends Unit {
             && rc.getType().equals(RobotType.POLITICIAN)
             && (rc.getInfluence() <= MAX_DEFENDER_INFLUENCE)
         );
+        System.out.println("I'm " + (is_defender ? "a defender" : "an attacker"));
     }
 
     double getEmpowerConvAvailable() throws GameActionException {
@@ -78,15 +79,17 @@ public strictfp class SlanPol extends Unit {
 
     final double SELF_EMPOWER_MIN_MULTIPLIER = 1.25;
     void empowerOnHomeEcIfBuffedEnough() throws GameActionException {
-        int target_dist2 = rc.getLocation().distanceSquaredTo(loc_of_ec_to_look_to);
-        if(target_dist2 <= 2) {
-            final double conv_available = getEmpowerConvAvailable();
-            RobotInfo [] rbts = rc.senseNearbyRobots(target_dist2);
-            if(conv_available / rbts.length > SELF_EMPOWER_MIN_MULTIPLIER * rc.getInfluence()
-                && rc.canEmpower(target_dist2)
-            ) {
-                System.out.println("I empowered on a friendly EC!!!");
-                rc.empower(target_dist2);
+        if(loc_of_ec_to_look_to != null) {
+            int target_dist2 = rc.getLocation().distanceSquaredTo(loc_of_ec_to_look_to);
+            if(target_dist2 <= 2) {
+                final double conv_available = getEmpowerConvAvailable();
+                RobotInfo [] rbts = rc.senseNearbyRobots(target_dist2);
+                if(conv_available / rbts.length > SELF_EMPOWER_MIN_MULTIPLIER * rc.getInfluence()
+                    && rc.canEmpower(target_dist2)
+                ) {
+                    System.out.println("I empowered on a friendly EC!!!");
+                    rc.empower(target_dist2);
+                }
             }
         }
     }
