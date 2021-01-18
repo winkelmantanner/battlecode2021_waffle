@@ -66,18 +66,12 @@ public strictfp class EnlightenmentCenter extends Robot {
         switch((rc.getRoundNum() % MAP_MIN_Y) + 1) {
             case NEUTRAL_EC:
                 if(neutral_ec_loc_to_broadcast != null) {
-                    boolean didflag = trySetFlag(getValueForFlagRelative(NEUTRAL_EC, neutral_ec_loc_to_broadcast));
-                    if(didflag) {
-                        System.out.println("flagged nec at " + neutral_ec_loc_to_broadcast.toString() + " " + String.valueOf(didflag));
-                    }
+                    trySetFlag(getValueForFlagRelative(NEUTRAL_EC, neutral_ec_loc_to_broadcast));
                 }
                 break;
             case ENEMY_ROBOT:
                 if(enemy_loc_to_broadcast != null) {
-                    boolean didflag = trySetFlag(getValueForFlagRelative(ENEMY_ROBOT, enemy_loc_to_broadcast));
-                    if(didflag) {
-                        System.out.println("flagged enemy robot at " + neutral_ec_loc_to_broadcast.toString() + " " + String.valueOf(didflag));
-                    }
+                    trySetFlag(getValueForFlagRelative(ENEMY_ROBOT, enemy_loc_to_broadcast));
                 }
                 break;
             case MAP_MAX_X:   broadcastMapEdgeIfApplicable(MAP_MAX_X, map_max_x);  break;
