@@ -47,50 +47,77 @@ public strictfp class EnlightenmentCenter extends Robot {
     int numRobotsBuilt = 0;
     int [] robots_i_built = new int[GameConstants.MAP_MAX_WIDTH * GameConstants.MAP_MAX_HEIGHT];
     int current_built_robot_array_index = 0;
+    MapLocation enemy_loc_to_broadcast = null;
+    int enemy_flag_round = -1;
+    MapLocation neutral_ec_loc_to_broadcast = null;
+    int neutral_ec_flag_round = -1;
     void doFlagStuff(RobotInfo nearest_enemy) throws GameActionException {
         standardFlagReset();
-        switch(rc.getRoundNum() % 10) {
-            case MAP_MAX_X:  broadcastMapEdgeIfApplicable(MAP_MAX_X, map_max_x);  break;
-            case MAP_MIN_X:  broadcastMapEdgeIfApplicable(MAP_MIN_X, map_min_x);  break;
-            case MAP_MAX_Y:  broadcastMapEdgeIfApplicable(MAP_MAX_Y, map_max_y);  break;
-            case MAP_MIN_Y:  broadcastMapEdgeIfApplicable(MAP_MIN_Y, map_min_y);  break;
-            default:
-                while(
-                    current_built_robot_array_index < numRobotsBuilt
-                    && Clock.getBytecodesLeft() > 1000
-                    && rc.getRoundNum() != round_when_i_last_set_my_flag
-                ) {
-                    int target_robot_id = robots_i_built[current_built_robot_array_index];
-                    if(rc.canGetFlag(target_robot_id)) {
-                        int flag_val = rc.getFlag(target_robot_id);
-                        if(flag_val != 0) {
-                            boolean was_flag_map_edge = updateMapEdgesBasedOnFlagIfApplicable(flag_val);
-                            if(!was_flag_map_edge) {
-                                if(flag_val >> 16 == ENEMY_ROBOT
-                                    && nearest_enemy != null
-                                ) {
-                                    // If we (the EC) see an enemy, flag it instead of what other robots say. 
-                                    // This only runs if we san an ENEMY_ROBOT flag from another robot.
-                                    flag_val = getValueForFlagRelative(
-                                        ENEMY_ROBOT,
-                                        nearest_enemy.location
-                                    );
-                                }
-                                if(trySetFlag(flag_val)) {
-                                    // Because trySetFlag sets round_when_i_last_set_my_flag,
-                                    //   the loop will exit after this iteration.
-                                    // The ++ statement at the end needs to execute still.
-                                }
-                            }
-                        }
+
+        if(nearest_enemy != null) {
+            enemy_loc_to_broadcast = nearest_enemy.location;
+            enemy_flag_round = rc.getRoundNum();
+        } else if(rc.getRoundNum() - enemy_flag_round > 5) {
+            enemy_loc_to_broadcast = null;
+        }
+        if(rc.getRoundNum() - neutral_ec_flag_round > 20) {
+            neutral_ec_loc_to_broadcast = null;
+        }
+        switch((rc.getRoundNum() % MAP_MIN_Y) + 1) {
+            case NEUTRAL_EC:
+                if(neutral_ec_loc_to_broadcast != null) {
+                    boolean didflag = trySetFlag(getValueForFlagRelative(NEUTRAL_EC, neutral_ec_loc_to_broadcast));
+                    if(didflag) {
+                        System.out.println("flagged nec at " + neutral_ec_loc_to_broadcast.toString() + " " + String.valueOf(didflag));
                     }
-                    current_built_robot_array_index++;
-                }
-                if(current_built_robot_array_index >= numRobotsBuilt) {
-                    current_built_robot_array_index = 0;
                 }
                 break;
+            case ENEMY_ROBOT:
+                if(neutral_ec_loc_to_broadcast != null) {
+                    boolean did_broadcast = trySetFlag(getValueForFlagRelative(ENEMY_ROBOT, neutral_ec_loc_to_broadcast));
+                    if(did_broadcast) {
+                        System.out.println("flagged nec at " + neutral_ec_loc_to_broadcast.toString() + " " + String.valueOf(did_broadcast));
+                    }
+                }
+                break;
+            case MAP_MAX_X:   broadcastMapEdgeIfApplicable(MAP_MAX_X, map_max_x);  break;
+            case MAP_MIN_X:   broadcastMapEdgeIfApplicable(MAP_MIN_X, map_min_x);  break;
+            case MAP_MAX_Y:   broadcastMapEdgeIfApplicable(MAP_MAX_Y, map_max_y);  break;
+            case MAP_MIN_Y:   broadcastMapEdgeIfApplicable(MAP_MIN_Y, map_min_y);  break;
         }
+
+        while(
+            current_built_robot_array_index < numRobotsBuilt
+            && Clock.getBytecodesLeft() > 1000
+        ) {
+            int target_robot_id = robots_i_built[current_built_robot_array_index];
+            if(rc.canGetFlag(target_robot_id)) {
+                int flag_val = rc.getFlag(target_robot_id);
+                if(flag_val != 0) {
+                    boolean was_flag_map_edge = updateMapEdgesBasedOnFlagIfApplicable(flag_val);
+                    if(!was_flag_map_edge) {
+                        // If we (the EC) see an enemy, flag it instead of what other robots say. 
+                        // This only runs if we saw an ENEMY_ROBOT flag from another robot.
+                        if(flag_val >> 16 == ENEMY_ROBOT
+                            && nearest_enemy == null
+                        ) {
+                            enemy_loc_to_broadcast = getMapLocationFromFlagValue(flag_val);
+                            enemy_flag_round = rc.getRoundNum();
+                        }
+                        if(flag_val >> 16 == NEUTRAL_EC) {
+                            neutral_ec_loc_to_broadcast = getMapLocationFromFlagValue(flag_val);
+                            neutral_ec_flag_round = rc.getRoundNum();
+                        }
+                    }
+                }
+            }
+            current_built_robot_array_index++;
+        }
+        if(current_built_robot_array_index >= numRobotsBuilt) {
+            current_built_robot_array_index = 0;
+            System.out.println("Reached end of robots_i_built which was length " + String.valueOf(numRobotsBuilt));
+        }
+        System.out.println("Clock.getBytecodesLeft():" + String.valueOf(Clock.getBytecodesLeft()));
     }
 
     boolean should_build_pols = true;
