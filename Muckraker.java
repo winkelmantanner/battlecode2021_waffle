@@ -103,10 +103,10 @@ public strictfp class Muckraker extends Unit {
             }
         }
 
-        RobotInfo nearest_enemy = nearestRobot(null, -1, enemy, null);
+        RobotInfo nearest_enemy_pol = nearestRobot(null, -1, enemy, RobotType.POLITICIAN);
 
         if(
-            nearest_enemy == null
+            nearest_enemy_pol == null
             || (
                 // We're not in a cardinal direction from a friendly EC
                 null == nearestRobot(null, 1, rc.getTeam(), RobotType.ENLIGHTENMENT_CENTER)

@@ -150,6 +150,7 @@ public strictfp class EnlightenmentCenter extends Robot {
 
         // This is used in more than one place
         RobotInfo nearest_enemy = nearestRobot(null, -1, rc.getTeam().opponent(), null);
+        RobotInfo nearest_enemy_pol = nearestRobot(null, -1, rc.getTeam().opponent(), RobotType.POLITICIAN);
 
         boolean do_exponential_growth_by_buff = (
             10 <= rc.getEmpowerFactor(rc.getTeam(), 2 + (int)RobotType.POLITICIAN.initialCooldown)
@@ -175,7 +176,7 @@ public strictfp class EnlightenmentCenter extends Robot {
                 round_when_i_last_built_slan = rc.getRoundNum();
             }
         } else if(
-            nearest_enemy != null
+            nearest_enemy_pol != null
             && !getIfAll4CardinalDirectionsAreOccupied()
         ) {
             // Make sure we have the basic shield of muckrakers
