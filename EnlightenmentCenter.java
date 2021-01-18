@@ -73,10 +73,10 @@ public strictfp class EnlightenmentCenter extends Robot {
                 }
                 break;
             case ENEMY_ROBOT:
-                if(neutral_ec_loc_to_broadcast != null) {
-                    boolean did_broadcast = trySetFlag(getValueForFlagRelative(ENEMY_ROBOT, neutral_ec_loc_to_broadcast));
-                    if(did_broadcast) {
-                        System.out.println("flagged nec at " + neutral_ec_loc_to_broadcast.toString() + " " + String.valueOf(did_broadcast));
+                if(enemy_loc_to_broadcast != null) {
+                    boolean didflag = trySetFlag(getValueForFlagRelative(ENEMY_ROBOT, enemy_loc_to_broadcast));
+                    if(didflag) {
+                        System.out.println("flagged enemy robot at " + neutral_ec_loc_to_broadcast.toString() + " " + String.valueOf(didflag));
                     }
                 }
                 break;
