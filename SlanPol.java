@@ -176,7 +176,7 @@ public strictfp class SlanPol extends Unit {
             if(rc.canGetFlag(id_of_ec_to_look_to)) {
                 int flag_val = rc.getFlag(id_of_ec_to_look_to);
                 if(flag_val >> 16 == NEUTRAL_EC) {
-                    target_loc_from_flag = getMapLocationFromFlagValue(flag_val);
+                    target_loc_from_flag = getMapLocationFromMaskedFlagValue(flag_val);
                     round_num_of_flag_read = rc.getRoundNum();
                 }
             }
@@ -196,7 +196,7 @@ public strictfp class SlanPol extends Unit {
             if(rc.canGetFlag(id_of_ec_to_look_to)) {
                 int flag_val = rc.getFlag(id_of_ec_to_look_to);
                 if(flag_val >> 16 == ENEMY_ROBOT) {
-                    enemy_loc_from_flag = getMapLocationFromFlagValue(flag_val);
+                    enemy_loc_from_flag = getMapLocationFromMaskedFlagValue(flag_val);
                     round_of_enemy_loc_from_flag = rc.getRoundNum();
                 }
             }

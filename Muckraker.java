@@ -23,7 +23,7 @@ public strictfp class Muckraker extends Unit {
         ) {
             int flag_val = rc.getFlag(id_of_ec_to_look_to);
             if(flag_val >> 16 == ENEMY_SLANDERER) {
-                where_flag_indicated_enemy_slanderer = getMapLocationFromFlagValue(flag_val);
+                where_flag_indicated_enemy_slanderer = getMapLocationFromMaskedFlagValue(flag_val);
                 round_when_flag_indicated_enemy_slanderer = rc.getRoundNum();
             }
         }
@@ -42,7 +42,7 @@ public strictfp class Muckraker extends Unit {
         if(where_i_saw_enemy_slanderer != null
             && rc.getRoundNum() - round_when_i_saw_enemy_slanderer < 3
         ) {
-            int flag_val = getValueForFlagRelative(ENEMY_SLANDERER, where_i_saw_enemy_slanderer);
+            int flag_val = getValueForFlagMaskedLocation(ENEMY_SLANDERER, where_i_saw_enemy_slanderer);
             did_set_flag = trySetFlag(flag_val);
             System.out.println("Tried to flag enemy slan at " + where_i_saw_enemy_slanderer.toString());
         }
