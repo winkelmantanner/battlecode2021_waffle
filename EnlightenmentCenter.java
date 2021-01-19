@@ -47,10 +47,14 @@ public strictfp class EnlightenmentCenter extends Robot {
     int numRobotsBuilt = 0;
     int [] robots_i_built = new int[GameConstants.MAP_MAX_WIDTH * GameConstants.MAP_MAX_HEIGHT];
     int current_built_robot_array_index = 0;
+
     MapLocation enemy_loc_to_broadcast = null;
     int enemy_flag_round = -1;
     MapLocation neutral_ec_loc_to_broadcast = null;
     int neutral_ec_flag_round = -1;
+    MapLocation enemy_slanderer_loc_to_broadcast = null;
+    int enemy_slanderer_flag_round = -1;
+
     void doFlagStuff(RobotInfo nearest_enemy) throws GameActionException {
         standardFlagReset();
 
@@ -63,7 +67,11 @@ public strictfp class EnlightenmentCenter extends Robot {
         if(rc.getRoundNum() - neutral_ec_flag_round > 20) {
             neutral_ec_loc_to_broadcast = null;
         }
-        switch((rc.getRoundNum() % MAP_MIN_Y) + 1) {
+        if(rc.getRoundNum() - enemy_slanderer_flag_round > 10) {
+            enemy_slanderer_loc_to_broadcast = null;
+        }
+
+        switch((rc.getRoundNum() % MAX_FLAG_MEANING_VALUE) + 1) {
             case NEUTRAL_EC:
                 if(neutral_ec_loc_to_broadcast != null) {
                     trySetFlag(getValueForFlagRelative(NEUTRAL_EC, neutral_ec_loc_to_broadcast));
@@ -78,6 +86,11 @@ public strictfp class EnlightenmentCenter extends Robot {
             case MAP_MIN_X:   broadcastMapEdgeIfApplicable(MAP_MIN_X, map_min_x);  break;
             case MAP_MAX_Y:   broadcastMapEdgeIfApplicable(MAP_MAX_Y, map_max_y);  break;
             case MAP_MIN_Y:   broadcastMapEdgeIfApplicable(MAP_MIN_Y, map_min_y);  break;
+            case ENEMY_SLANDERER: 
+                if(enemy_slanderer_loc_to_broadcast != null) {
+                    trySetFlag(getValueForFlagRelative(ENEMY_SLANDERER, enemy_slanderer_loc_to_broadcast));
+                }
+                break;
         }
 
         while(
@@ -101,6 +114,10 @@ public strictfp class EnlightenmentCenter extends Robot {
                         if(flag_val >> 16 == NEUTRAL_EC) {
                             neutral_ec_loc_to_broadcast = getMapLocationFromFlagValue(flag_val);
                             neutral_ec_flag_round = rc.getRoundNum();
+                        }
+                        if(flag_val >> 16 == ENEMY_SLANDERER) {
+                            enemy_slanderer_loc_to_broadcast = getMapLocationFromFlagValue(flag_val);
+                            enemy_slanderer_flag_round = rc.getRoundNum();
                         }
                     }
                 }

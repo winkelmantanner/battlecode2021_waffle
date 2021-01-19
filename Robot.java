@@ -120,6 +120,8 @@ abstract public strictfp class Robot {
     final int MAP_MIN_X = 4;
     final int MAP_MAX_Y = 5;
     final int MAP_MIN_Y = 6;
+    final int ENEMY_SLANDERER = 7;
+    final int MAX_FLAG_MEANING_VALUE = ENEMY_SLANDERER;
     int getValueForFlagRelative(
         final int what_the_flag_represents,
         MapLocation loc
