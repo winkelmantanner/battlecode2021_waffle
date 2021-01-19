@@ -122,24 +122,16 @@ abstract public strictfp class Robot {
     final int MAP_MIN_Y = 6;
     final int ENEMY_SLANDERER = 7;
     final int MAX_FLAG_MEANING_VALUE = ENEMY_SLANDERER;
-    int getValueForFlagRelative(
+    public int getMasked(final int coord_unmasked) {
+        return 0xFF & coord_unmasked;
+    }
+    int getValueForFlagMaskedLocation(
         final int what_the_flag_represents,
         MapLocation loc
     ) {
-        // where_i_spawned will be close to, but not exactly, the same for units from the same EC.
-        // So there will be known error because of where_i_spawned.
-
-        // These two variables need to be int type.
-        // If they are byte type, if they are negative they will be incorrectly casted to a negative int.
-        int x = 0b11111111 & (loc.x - where_i_spawned.x);
-        int y = 0b11111111 & (loc.y - where_i_spawned.y);
-        int result = what_the_flag_represents;
-        result <<= 8;
-        result |= x;
-        result <<= 8;
-        result |= y;
-
-        return result;
+        int x = getMasked(loc.x);
+        int y = getMasked(loc.y);
+        return (((what_the_flag_represents << 8) | x) << 8) | y;
     }
     int getValueForFlagRaw(
         final int what_the_flag_represents,
@@ -150,11 +142,40 @@ abstract public strictfp class Robot {
         result |= ((int)last_2_bytes) & 0xFFFF;
         return result;
     }
-    MapLocation getMapLocationFromFlagValue(final int flag_value) {
-        // the flag must be from a robot from the same EC as us
-        int dx = (int)((byte)((flag_value >> 8) & 0b11111111));
-        int dy = (int)((byte)(flag_value & 0b11111111));
-        return where_i_spawned.translate(dx, dy);
+    int getOriginalMapCoordFromMasked(
+        final int masked_coord,
+        final int my_coord_unmasked
+    ) {
+        int my_coord_masked = (my_coord_unmasked & 0xFF);
+
+        int d1 = (masked_coord + 0x100) - my_coord_masked;
+        int d2 = masked_coord - my_coord_masked;
+        int d3 = masked_coord - (my_coord_masked + 0x100);
+
+        int a1 = Math.abs(d1);
+        int a2 = Math.abs(d2);
+        int a3 = Math.abs(d3);
+
+        int a_min = Math.min(a1, Math.min(a2, a3));
+
+        int d_actual = 0;
+        if(a_min == a1) {
+            d_actual = d1;
+        } else if(a_min == a2) {
+            d_actual = d2;
+        } else { // a_min == a3
+            d_actual = d3;
+        }
+
+        return my_coord_unmasked + d_actual;
+    }
+    MapLocation getMapLocationFromMaskedFlagValue(final int flag_value) {
+        MapLocation myLoc = rc.getLocation();
+        int masked_x = (flag_value >> 8) & 0xFF;
+        int masked_y = flag_value & 0xFF;
+        int x = getOriginalMapCoordFromMasked(masked_x, myLoc.x);
+        int y = getOriginalMapCoordFromMasked(masked_y, myLoc.y);
+        return new MapLocation(x, y);
     }
 
 
@@ -171,7 +192,7 @@ abstract public strictfp class Robot {
             neutral_ec = rbt;
         }
         if(neutral_ec != null) {
-            int value_for_flag = getValueForFlagRelative(
+            int value_for_flag = getValueForFlagMaskedLocation(
                 NEUTRAL_EC,
                 neutral_ec.location
             );
@@ -199,7 +220,7 @@ abstract public strictfp class Robot {
         }
         if(count > 0) {
             MapLocation enemy_centroid = new MapLocation(x_sum / count, y_sum / count);
-            int flag_val = getValueForFlagRelative(
+            int flag_val = getValueForFlagMaskedLocation(
                 ENEMY_ROBOT,
                 enemy_centroid
             );
