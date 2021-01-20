@@ -22,7 +22,7 @@ public strictfp class Muckraker extends Unit {
             && rc.canGetFlag(id_of_ec_to_look_to)
         ) {
             int flag_val = rc.getFlag(id_of_ec_to_look_to);
-            if(flag_val >> 16 == ENEMY_SLANDERER) {
+            if(getMeaningWithoutConv(flag_val) == ENEMY_SLANDERER) {
                 where_flag_indicated_enemy_slanderer = getMapLocationFromMaskedFlagValue(flag_val);
                 round_when_flag_indicated_enemy_slanderer = rc.getRoundNum();
             }
