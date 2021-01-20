@@ -36,13 +36,14 @@ public strictfp class SlanPol extends Unit {
                         ) {
                             // It will convert the EC: just do it
                             just_do_it = true;
-                        }
-                        if(rbt.type.equals(RobotType.MUCKRAKER)) {
-                            transferrableConviction += Math.min(rbt.conviction + 1, Math.floor(conv_available / rbts.length));
-                        } else if(rbt.type.equals(RobotType.POLITICIAN)) {
-                            transferrableConviction += Math.min(rbt.conviction + rbt.influence, conv_available / rbts.length);
-                        } else {
-                            transferrableConviction += conv_available / rbts.length;
+                        } else if(target_loc_from_flag == null) {
+                            if(rbt.type.equals(RobotType.MUCKRAKER)) {
+                                transferrableConviction += Math.min(rbt.conviction + 1, Math.floor(conv_available / rbts.length));
+                            } else if(rbt.type.equals(RobotType.POLITICIAN)) {
+                                transferrableConviction += Math.min(rbt.conviction + rbt.influence, conv_available / rbts.length);
+                            } else {
+                                transferrableConviction += conv_available / rbts.length;
+                            }
                         }
                     }
                 }
@@ -59,7 +60,7 @@ public strictfp class SlanPol extends Unit {
                     )
                 )
             ) {
-                System.out.println("empowering  my conviction:" + String.valueOf(rc.getConviction()) + " actionR2:" + String.valueOf(actionR2) + " transferrableConviction:" + String.valueOf(transferrableConviction) + " conv_available:" + String.valueOf(conv_available) + " rbts_len:" + String.valueOf(rbts_len));
+                System.out.println("empowering  my conviction:" + String.valueOf(rc.getConviction()) + " actionR2:" + String.valueOf(actionR2) + " transferrableConviction:" + String.valueOf(transferrableConviction) + " conv_available:" + String.valueOf(conv_available) + " rbts_len:" + String.valueOf(rbts_len) + " just_do_it:" + String.valueOf(just_do_it) + " target_loc_from_flag == null:" + (target_loc_from_flag == null));
                 rc.empower(actionR2);
             }
         }
@@ -195,7 +196,19 @@ public strictfp class SlanPol extends Unit {
         } else { // target_loc_from_flag != null
             stepWithPassability(target_loc_from_flag);
         }
-        if(50 < rc.getRoundNum() - round_num_of_flag_read) {
+
+        boolean should_clear_target_loc = (
+            100 < rc.getRoundNum() - round_num_of_flag_read
+        );
+        if(target_loc_from_flag != null
+            && rc.canSenseLocation(target_loc_from_flag)
+        ) {
+            RobotInfo rbt = rc.senseRobotAtLocation(target_loc_from_flag);
+            if(rbt == null || rbt.team.equals(rc.getTeam())) {
+                should_clear_target_loc = true;
+            }
+        }
+        if(should_clear_target_loc) {
             target_loc_from_flag = null;
         }
     }
