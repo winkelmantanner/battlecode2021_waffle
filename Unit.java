@@ -40,6 +40,42 @@ abstract public strictfp class Unit extends Robot {
     }
 
 
+    final double PASSABILITY_RATIO = 0.6;
+    boolean stepWithPassability(Direction target_dir) throws GameActionException {
+        return stepWithPassability(rc.getLocation().add(target_dir).add(target_dir));
+    }
+    boolean stepWithPassability(MapLocation target_loc) throws GameActionException {
+        boolean did_move = false;
+        Direction best_dir = null;
+        double max_passability = 0;
+        Direction dir_to_target = rc.getLocation().directionTo(target_loc);
+        if(rc.canMove(dir_to_target)
+            && rc.canSenseLocation(rc.adjacentLocation(dir_to_target))
+        ) {
+            best_dir = dir_to_target;
+            max_passability = rc.sensePassability(rc.adjacentLocation(dir_to_target));
+        }
+        int my_dist_from_target = rc.getLocation().distanceSquaredTo(target_loc);
+        for(Direction dir : directions) {
+            MapLocation loc = rc.adjacentLocation(dir);
+            int dist_from_target = loc.distanceSquaredTo(target_loc);
+            if(dist_from_target < my_dist_from_target
+                && rc.canMove(dir)
+                && rc.canSenseLocation(loc)
+                && rc.sensePassability(loc) * PASSABILITY_RATIO > max_passability
+            ) {
+                best_dir = dir;
+                max_passability = rc.sensePassability(loc);
+            }
+        }
+        if(best_dir != null) {
+            rc.move(best_dir);
+            did_move = true;
+        } else {
+            did_move = fuzzyStep(target_loc);
+        }
+        return did_move;
+    }
     boolean fuzzyStep(Direction target_dir) throws GameActionException {
         boolean moved = false;
         Direction dir = target_dir;

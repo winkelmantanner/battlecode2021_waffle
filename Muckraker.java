@@ -30,7 +30,7 @@ public strictfp class Muckraker extends Unit {
         if(where_flag_indicated_enemy_slanderer != null
             && 50 > rc.getRoundNum() - round_when_flag_indicated_enemy_slanderer
         ) {
-            did_move = fuzzyStep(where_flag_indicated_enemy_slanderer);
+            did_move = stepWithPassability(where_flag_indicated_enemy_slanderer);
         }
         return did_move;
     }
@@ -109,7 +109,7 @@ public strictfp class Muckraker extends Unit {
             if (
                 where_i_saw_enemy_slanderer != null
                 && 10 > rc.getRoundNum() - round_when_i_saw_enemy_slanderer
-                && fuzzyStep(where_i_saw_enemy_slanderer)
+                && stepWithPassability(where_i_saw_enemy_slanderer)
             ) {
                 System.out.println("I (muckraker) stepped toward target: " + where_i_saw_enemy_slanderer.toString());
             }

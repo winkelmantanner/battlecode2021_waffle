@@ -136,7 +136,7 @@ public strictfp class SlanPol extends Unit {
                 target_rbt = nearestRobot(null, -1, rc.getTeam().opponent(), RobotType.ENLIGHTENMENT_CENTER);
             }
             if(target_rbt != null) {
-                fuzzyStep(target_rbt.location);
+                stepWithPassability(target_rbt.location);
             }
         }
     }
@@ -147,7 +147,7 @@ public strictfp class SlanPol extends Unit {
             if(target_rbt != null
                 && where_i_spawned.distanceSquaredTo(target_rbt.location) < THREATENING_MR_FOLLOW_DIST2
             ) {
-                fuzzyStep(target_rbt.location);
+                stepWithPassability(target_rbt.location);
             }
         }
     }
@@ -157,12 +157,12 @@ public strictfp class SlanPol extends Unit {
         boolean moved = false;
         RobotInfo nearby_robot = nearestRobot(null, 2, null, null);
         if(nearby_robot != null) {
-            if(fuzzyStep(rc.getLocation().directionTo(nearby_robot.location).opposite())) {
+            if(stepWithPassability(rc.getLocation().directionTo(nearby_robot.location).opposite())) {
                 moved = true;
                 System.out.println("I stepped away from robot at " + nearby_robot.location.toString());
             }
         } else if(rc.getLocation().distanceSquaredTo(where_i_spawned) >= NEAR_HOME_DIST2) {
-            moved = fuzzyStep(where_i_spawned);
+            moved = stepWithPassability(where_i_spawned);
         } else {
             moved = tryMove(randomDirection());
         }
@@ -181,7 +181,7 @@ public strictfp class SlanPol extends Unit {
                 }
             }
         } else { // target_loc_from_flag != null
-            fuzzyStep(target_loc_from_flag);
+            stepWithPassability(target_loc_from_flag);
         }
         if(50 < rc.getRoundNum() - round_num_of_flag_read) {
             target_loc_from_flag = null;
@@ -207,7 +207,7 @@ public strictfp class SlanPol extends Unit {
                 hiding_dir.dx * HIDING_DISTANCE,
                 hiding_dir.dy * HIDING_DISTANCE
             );
-            if(fuzzyStep(hiding_spot)) {
+            if(stepWithPassability(hiding_spot)) {
                 System.out.println("HID BASED ON FLAGGED ENEMY at " + enemy_loc_from_flag.toString());
             }
         }
@@ -264,7 +264,7 @@ public strictfp class SlanPol extends Unit {
             }
         }
         if(loc_of_nearest_enemy_mr != null) {
-            if(fuzzyStep(myLoc.directionTo(loc_of_nearest_enemy_mr).opposite())) {
+            if(stepWithPassability(myLoc.directionTo(loc_of_nearest_enemy_mr).opposite())) {
                 System.out.println("Ran from enemy muckraker at " + loc_of_nearest_enemy_mr.toString());
             }
         }
