@@ -63,6 +63,8 @@ public strictfp class EnlightenmentCenter extends Robot {
     MapLocation enemy_slanderer_loc_to_broadcast = null;
     int enemy_slanderer_flag_round = -1;
 
+    int round_defender_was_built = -12345;
+
     void doFlagStuff(RobotInfo nearest_enemy) throws GameActionException {
         standardFlagReset();
 
@@ -76,6 +78,11 @@ public strictfp class EnlightenmentCenter extends Robot {
                 System.out.println("Flagged for nec converter: " + String.valueOf(flag_val));
             } else {
                 System.out.println("FAILED TO SET NEC FLAG FOR POL I MADE LAST ROUND");
+            }
+        } else if(1 == rc.getRoundNum() - round_defender_was_built) {
+            int flag_val = getValueForFlagRaw(ASSIGNING_DEFENDER, (short)0);
+            if(trySetFlag(flag_val)) {
+                System.out.println("ASSIGNED DEFENDER");
             }
         } else {
             if(nearest_enemy != null) {
@@ -295,7 +302,9 @@ public strictfp class EnlightenmentCenter extends Robot {
                 directions
             )) {
                 if(building_defender) {
+                    System.out.println("Built defender");
                     num_defenders_built++;
+                    round_defender_was_built = rc.getRoundNum();
                 }
             }
         } else if(
