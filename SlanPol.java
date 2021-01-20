@@ -10,12 +10,7 @@ public strictfp class SlanPol extends Unit {
     SlanPol(RobotController rbt_controller) {
         super(rbt_controller);
         last_round_type = rc.getType();
-        is_defender = (
-            id_of_ec_to_look_to != -1
-            && rc.getType().equals(RobotType.POLITICIAN)
-            && (rc.getInfluence() <= MAX_DEFENDER_INFLUENCE)
-        );
-        System.out.println("I'm " + (is_defender ? "a defender" : "an attacker"));
+        System.out.println("roundNumCreated:" + String.valueOf(roundNumCreated));
     }
 
     double getEmpowerConvAvailable() throws GameActionException {
@@ -169,6 +164,22 @@ public strictfp class SlanPol extends Unit {
         return moved;
     }
 
+    void updateAssignmentFromFlag() throws GameActionException {
+        // Only does anything on the round I was created
+        if(rc.getRoundNum() == roundNumCreated
+            && id_of_ec_to_look_to != -1
+            && rc.canGetFlag(id_of_ec_to_look_to)
+        ) {
+            int flag_val = rc.getFlag(id_of_ec_to_look_to);
+            if(getMeaningWithoutConv(flag_val) == ASSIGNING_DEFENDER) {
+                is_defender = true;
+                System.out.println("I'm " + (is_defender ? "a defender" : "an attacker") + " due to flag from the EC");
+            } else {
+                System.out.println("Not defender");
+            }
+        }
+    }
+
     MapLocation target_loc_from_flag = null;
     int round_num_of_flag_read = -1;
     void polFlagReceivingStuff() throws GameActionException {
@@ -218,6 +229,7 @@ public strictfp class SlanPol extends Unit {
     }
 
     public void runTurnPolitician() throws GameActionException {
+        updateAssignmentFromFlag();
         mapEdgeFlagReceivingStuffNonEc();
 
         flagEnemies();

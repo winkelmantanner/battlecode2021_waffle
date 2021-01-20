@@ -121,7 +121,8 @@ abstract public strictfp class Robot {
     final int MAP_MAX_Y = 5;
     final int MAP_MIN_Y = 6;
     final int ENEMY_SLANDERER = 7;
-    final int MAX_FLAG_MEANING_VALUE = ENEMY_SLANDERER;
+    final int MAX_FLAG_MEANING_VALUE = ENEMY_SLANDERER; // Round num is modded by this
+    final int ASSIGNING_DEFENDER = 15;
     public int getMasked(final int coord_unmasked) {
         return 0xFF & coord_unmasked;
     }
