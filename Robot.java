@@ -177,6 +177,26 @@ abstract public strictfp class Robot {
         int y = getOriginalMapCoordFromMasked(masked_y, myLoc.y);
         return new MapLocation(x, y);
     }
+    int getMeaningWithoutConv(final int flag_val) {
+        return ((flag_val >> 16) & 0b1111);
+    }
+
+    // Powers of phi, length 16
+    // Each entry is ceil(phi**index)
+    final int [] NEC_CONV_VALS = {1, 2, 3, 5, 7, 12, 18, 30, 47, 76, 123, 199, 322, 521, 843, 1364};
+    int getNeutralEcMeaningWithConv(final int meaning_wo_conv, final int conviction) {
+        int idx = 0;
+        for(int k = 0; k < NEC_CONV_VALS.length; k++) {
+            if(conviction <= NEC_CONV_VALS[k]) {
+                idx = k;
+                break;
+            }
+        }
+        return ((idx << 4) | meaning_wo_conv);
+    }
+    int getMaxConvFromMeaning(final int meaning_w_conv) {
+        return NEC_CONV_VALS[(meaning_w_conv >> 16) >> 4];
+    }
 
 
     boolean flagNeutralECs() throws GameActionException {
@@ -193,7 +213,10 @@ abstract public strictfp class Robot {
         }
         if(neutral_ec != null) {
             int value_for_flag = getValueForFlagMaskedLocation(
-                NEUTRAL_EC,
+                getNeutralEcMeaningWithConv(
+                    NEUTRAL_EC,
+                    neutral_ec.conviction
+                ),
                 neutral_ec.location
             );
             if(trySetFlag(value_for_flag)) {
@@ -280,7 +303,7 @@ abstract public strictfp class Robot {
 
     boolean updateMapEdgesBasedOnFlagIfApplicable(final int flag_val) {
         boolean did = false;
-        switch(flag_val >> 16) {
+        switch(getMeaningWithoutConv(flag_val)) {
             case MAP_MAX_X:  map_max_x = (flag_val & 0xFFFF);  did = true;  break;
             case MAP_MIN_X:  map_min_x = (flag_val & 0xFFFF);  did = true;  break;
             case MAP_MAX_Y:  map_max_y = (flag_val & 0xFFFF);  did = true;  break;

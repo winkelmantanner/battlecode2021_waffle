@@ -175,9 +175,10 @@ public strictfp class SlanPol extends Unit {
         if(target_loc_from_flag == null) {
             if(rc.canGetFlag(id_of_ec_to_look_to)) {
                 int flag_val = rc.getFlag(id_of_ec_to_look_to);
-                if(flag_val >> 16 == NEUTRAL_EC) {
+                if(getMeaningWithoutConv(flag_val) == NEUTRAL_EC) {
                     target_loc_from_flag = getMapLocationFromMaskedFlagValue(flag_val);
                     round_num_of_flag_read = rc.getRoundNum();
+                    System.out.println("Received target_loc_from_flag:" + target_loc_from_flag.toString());
                 }
             }
         } else { // target_loc_from_flag != null
@@ -195,7 +196,7 @@ public strictfp class SlanPol extends Unit {
         if(enemy_loc_from_flag == null) {
             if(rc.canGetFlag(id_of_ec_to_look_to)) {
                 int flag_val = rc.getFlag(id_of_ec_to_look_to);
-                if(flag_val >> 16 == ENEMY_ROBOT) {
+                if(getMeaningWithoutConv(flag_val) == ENEMY_ROBOT) {
                     enemy_loc_from_flag = getMapLocationFromMaskedFlagValue(flag_val);
                     round_of_enemy_loc_from_flag = rc.getRoundNum();
                 }
@@ -239,9 +240,9 @@ public strictfp class SlanPol extends Unit {
             // I'm an attacker
             attackerEmpower();
 
-            moveTowardNonfriendlyEcs();
-
             polFlagReceivingStuff();
+
+            moveTowardNonfriendlyEcs();
 
             exploreMove();
         }
