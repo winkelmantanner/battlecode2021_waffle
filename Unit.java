@@ -45,27 +45,27 @@ abstract public strictfp class Unit extends Robot {
         return stepWithPassability(rc.getLocation().add(target_dir).add(target_dir));
     }
     boolean stepWithPassability(MapLocation target_loc) throws GameActionException {
+        MapLocation myLoc = rc.getLocation();
         boolean did_move = false;
         Direction best_dir = null;
-        double max_passability = 0;
-        Direction dir_to_target = rc.getLocation().directionTo(target_loc);
-        if(rc.canMove(dir_to_target)
-            && rc.canSenseLocation(rc.adjacentLocation(dir_to_target))
-        ) {
-            best_dir = dir_to_target;
-            max_passability = rc.sensePassability(rc.adjacentLocation(dir_to_target));
-        }
-        int my_dist_from_target = rc.getLocation().distanceSquaredTo(target_loc);
+        double max_value = 0;
+        int my_dist_from_target = myLoc.distanceSquaredTo(target_loc);
         for(Direction dir : directions) {
-            MapLocation loc = rc.adjacentLocation(dir);
-            int dist_from_target = loc.distanceSquaredTo(target_loc);
-            if(dist_from_target < my_dist_from_target
-                && rc.canMove(dir)
-                && rc.canSenseLocation(loc)
-                && rc.sensePassability(loc) * PASSABILITY_RATIO > max_passability
+            MapLocation landing_loc = rc.adjacentLocation(dir);
+            if(rc.canMove(dir)
+                && rc.canSenseLocation(landing_loc)
             ) {
-                best_dir = dir;
-                max_passability = rc.sensePassability(loc);
+                int dot = ((target_loc.x - landing_loc.x) * dir.dx) + ((target_loc.y - landing_loc.y) * dir.dy);
+                double value = dot * rc.sensePassability(landing_loc);
+                if(dir.dx != 0 && dir.dy != 0) {
+                    // Reduce value a little for diagonal directions.
+                    // Otherwise this would not move in cardinal directions unless it improved passability.
+                    value *= 0.9;
+                }
+                if(value > max_value) {
+                    best_dir = dir;
+                    max_value = value;
+                }
             }
         }
         if(best_dir != null) {
