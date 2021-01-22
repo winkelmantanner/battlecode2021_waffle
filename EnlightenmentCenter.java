@@ -215,6 +215,8 @@ public strictfp class EnlightenmentCenter extends Robot {
     int round_last_built_nec_converter = -12345;
     MapLocation last_nec_converter_target_loc = null;
 
+    final double EMPOWER_FACTOR_THRESHOLD = 5;
+
     public void runTurnRobot() throws GameActionException {
         shield_conviction = SHIELD_FACTOR * getEcPassiveIncome(rc.getRoundNum());
         int available_influence = rc.getInfluence() - shield_conviction;
@@ -229,7 +231,7 @@ public strictfp class EnlightenmentCenter extends Robot {
         RobotInfo nearest_enemy_pol = nearestRobot(null, -1, rc.getTeam().opponent(), RobotType.POLITICIAN);
 
         boolean do_exponential_growth_by_buff = (
-            10 <= rc.getEmpowerFactor(rc.getTeam(), 2 + (int)RobotType.POLITICIAN.initialCooldown)
+            EMPOWER_FACTOR_THRESHOLD <= rc.getEmpowerFactor(rc.getTeam(), 2 + (int)RobotType.POLITICIAN.initialCooldown)
         );
 
         if(nearest_enemy != null
