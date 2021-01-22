@@ -341,6 +341,15 @@ abstract public strictfp class Robot {
 
 
 
+    boolean shouldUseBuff(final double cooldown) {
+        return EMPOWER_FACTOR_THRESHOLD <= rc.getEmpowerFactor(
+            rc.getTeam(),
+            2 + (int)cooldown
+        );
+    }
+
+
+
     /**
      * Returns a random Direction.
      *
