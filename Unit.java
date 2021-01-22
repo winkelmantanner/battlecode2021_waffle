@@ -45,23 +45,26 @@ abstract public strictfp class Unit extends Robot {
         return stepWithPassability(rc.getLocation().add(target_dir).add(target_dir));
     }
     boolean stepWithPassability(MapLocation target_loc) throws GameActionException {
-        MapLocation myLoc = rc.getLocation();
+        final MapLocation myLoc = rc.getLocation();
         boolean did_move = false;
         Direction best_dir = null;
-        double max_value = 0;
-        int my_dist_from_target = myLoc.distanceSquaredTo(target_loc);
+        double max_value = -12345;
+        final int start_dist = myLoc.distanceSquaredTo(target_loc);
         for(Direction dir : directions) {
             MapLocation landing_loc = rc.adjacentLocation(dir);
             if(rc.canMove(dir)
                 && rc.canSenseLocation(landing_loc)
             ) {
-                int dot = ((target_loc.x - landing_loc.x) * dir.dx) + ((target_loc.y - landing_loc.y) * dir.dy);
-                double value = dot * rc.sensePassability(landing_loc);
-                if(dir.dx != 0 && dir.dy != 0) {
-                    // Reduce value a little for diagonal directions.
-                    // Otherwise this would not move in cardinal directions unless it improved passability.
-                    value *= 0.9;
+                int end_dist = landing_loc.distanceSquaredTo(target_loc);
+                double value = start_dist - end_dist;
+                // Allow value to be negative, representing moving away from the target.
+                // Minimize the increase in distance to the target and maximize passability.
+                if(value > 0) {
+                    value *= rc.sensePassability(landing_loc);
+                } else {
+                    value /= rc.sensePassability(landing_loc);
                 }
+                // System.out.println("landing_loc:" + landing_loc.toString() + " " + String.valueOf(end_dist) + " myLoc:" + myLoc.toString() + " " + String.valueOf(start_dist) + " " + dir.toString());
                 if(value > max_value) {
                     best_dir = dir;
                     max_value = value;
@@ -71,9 +74,7 @@ abstract public strictfp class Unit extends Robot {
         if(best_dir != null) {
             rc.move(best_dir);
             did_move = true;
-        } else {
-            did_move = fuzzyStep(target_loc);
-        }
+        } // otherwise I'm stuck
         return did_move;
     }
     boolean fuzzyStep(Direction target_dir) throws GameActionException {
