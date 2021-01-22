@@ -149,13 +149,24 @@ public strictfp class SlanPol extends Unit {
     }
 
     final int NEAR_HOME_DIST2 = 7*7;
+    final int EDGE_DISTANCE = 2;
     boolean spreadNearHome() throws GameActionException {
+        MapLocation myLoc = rc.getLocation();
         boolean moved = false;
-        RobotInfo nearby_robot = nearestRobot(null, 2, null, null);
-        if(nearby_robot != null) {
-            if(stepWithPassability(rc.getLocation().directionTo(nearby_robot.location).opposite())) {
+        RobotInfo adj_friendly_pol = nearestRobot(null, 2, rc.getTeam(), RobotType.POLITICIAN);
+        if(       map_max_x != UNKNOWN && map_max_x - myLoc.x < EDGE_DISTANCE) {
+            stepWithPassability(myLoc.translate(-1, 0));
+        } else if(map_min_x != UNKNOWN && myLoc.x - map_min_x < EDGE_DISTANCE) {
+            stepWithPassability(myLoc.translate(1, 0));
+        } else if(map_max_y != UNKNOWN && map_max_y - myLoc.y < EDGE_DISTANCE) {
+            stepWithPassability(myLoc.translate(0, -1));
+        } else if(map_min_y != UNKNOWN && myLoc.y - map_min_y < EDGE_DISTANCE) {
+            stepWithPassability(myLoc.translate(0, 1));
+        }
+        if(adj_friendly_pol != null) {
+            if(stepWithPassability(rc.getLocation().directionTo(adj_friendly_pol.location).opposite())) {
                 moved = true;
-                System.out.println("I stepped away from robot at " + nearby_robot.location.toString());
+                System.out.println("I stepped away from pol at " + adj_friendly_pol.location.toString());
             }
         } else if(rc.getLocation().distanceSquaredTo(where_i_spawned) >= NEAR_HOME_DIST2) {
             moved = stepWithPassability(where_i_spawned);
