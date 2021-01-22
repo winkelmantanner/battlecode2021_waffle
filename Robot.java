@@ -11,6 +11,8 @@ abstract public strictfp class Robot {
     boolean preferRotateRight = false;
     double sensor_radius_nonsquared = -1;
 
+    final int STANDARD_POLITICIAN_INFLUENCE = 50;
+
     final int UNKNOWN = -1;
     int map_max_x = UNKNOWN;
     int map_min_x = UNKNOWN;
@@ -121,7 +123,8 @@ abstract public strictfp class Robot {
     final int MAP_MAX_Y = 5;
     final int MAP_MIN_Y = 6;
     final int ENEMY_SLANDERER = 7;
-    final int MAX_FLAG_MEANING_VALUE = ENEMY_SLANDERER; // Round num is modded by this
+    final int ENEMY_EC = 8;
+    final int MAX_FLAG_MEANING_VALUE = ENEMY_EC; // Round num is modded by this
     final int ASSIGNING_DEFENDER = 15;
     public int getMasked(final int coord_unmasked) {
         return 0xFF & coord_unmasked;
@@ -247,6 +250,21 @@ abstract public strictfp class Robot {
             int flag_val = getValueForFlagMaskedLocation(
                 ENEMY_ROBOT,
                 enemy_centroid
+            );
+            if(trySetFlag(flag_val)) {
+                did_set_flag = true;
+            }
+        }
+        return did_set_flag;
+    }
+
+    boolean flagEnemyEcs() throws GameActionException {
+        boolean did_set_flag = false;
+        RobotInfo enemy_ec = nearestRobot(null, -1, rc.getTeam().opponent(), RobotType.ENLIGHTENMENT_CENTER);
+        if(enemy_ec != null) {
+            int flag_val = getValueForFlagMaskedLocation(
+                ENEMY_EC,
+                enemy_ec.location
             );
             if(trySetFlag(flag_val)) {
                 did_set_flag = true;
