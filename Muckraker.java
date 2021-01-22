@@ -5,8 +5,8 @@ public strictfp class Muckraker extends Unit {
     MapLocation where_i_saw_enemy_slanderer = null;
     int round_when_i_saw_enemy_slanderer = -1;
 
-    MapLocation where_flag_indicated_enemy_slanderer = null;
-    int round_when_flag_indicated_enemy_slanderer = -1;
+    MapLocation target_loc_from_flag = null;
+    int round_of_target_loc_from_flag = -1;
 
     boolean is_cruncher = false;
     Muckraker(RobotController rbt_controller) {
@@ -15,22 +15,28 @@ public strictfp class Muckraker extends Unit {
         System.out.println("is_cruncher:" + String.valueOf(is_cruncher));
     }
 
-    boolean moveForSlandererFromFlag() throws GameActionException {
+    boolean moveForTargetFromFlag() throws GameActionException {
         boolean did_move = false;
         if(
             id_of_ec_to_look_to != -1
             && rc.canGetFlag(id_of_ec_to_look_to)
         ) {
             int flag_val = rc.getFlag(id_of_ec_to_look_to);
-            if(getMeaningWithoutConv(flag_val) == ENEMY_SLANDERER) {
-                where_flag_indicated_enemy_slanderer = getMapLocationFromMaskedFlagValue(flag_val);
-                round_when_flag_indicated_enemy_slanderer = rc.getRoundNum();
+            int meaning = getMeaningWithoutConv(flag_val);
+            if(meaning == ENEMY_SLANDERER
+                || (
+                    meaning == ENEMY_EC
+                    && rc.getRoundNum() % 250 < 50
+                )
+            ) {
+                target_loc_from_flag = getMapLocationFromMaskedFlagValue(flag_val);
+                round_of_target_loc_from_flag = rc.getRoundNum();
             }
         }
-        if(where_flag_indicated_enemy_slanderer != null
-            && 50 > rc.getRoundNum() - round_when_flag_indicated_enemy_slanderer
+        if(target_loc_from_flag != null
+            && 50 > rc.getRoundNum() - round_of_target_loc_from_flag
         ) {
-            did_move = stepWithPassability(where_flag_indicated_enemy_slanderer);
+            did_move = stepWithPassability(target_loc_from_flag);
         }
         return did_move;
     }
@@ -87,6 +93,7 @@ public strictfp class Muckraker extends Unit {
 
         flagEnemies();
         flagMapEdges();
+        flagEnemyEcs();
         flagNeutralECs();
         flagEnemySlanderer();
         // The later flag overrides the earlier
@@ -94,13 +101,10 @@ public strictfp class Muckraker extends Unit {
 
         RobotInfo nearest_enemy_pol = nearestRobot(null, -1, enemy, RobotType.POLITICIAN);
 
-        if(
-            nearest_enemy_pol == null
+        if(null == nearestRobot(null, 2, enemy, RobotType.ENLIGHTENMENT_CENTER)
             || (
-                // We're not in a cardinal direction from a friendly EC
-                null == nearestRobot(null, 1, rc.getTeam(), RobotType.ENLIGHTENMENT_CENTER)
-                // We're not blocking an enemy EC
-                && null == nearestRobot(null, 2, enemy, RobotType.ENLIGHTENMENT_CENTER)
+                nearest_enemy_pol == null
+                && null == nearestRobot(null, 1, rc.getTeam(), RobotType.ENLIGHTENMENT_CENTER)
             )
         ) {
             // Move only if not a guard
@@ -119,7 +123,7 @@ public strictfp class Muckraker extends Unit {
                 //  then an enemy slan is reported,
                 //  then we stop being a guard,
                 //  we will not know about the enemy slan.
-                moveForSlandererFromFlag();
+                moveForTargetFromFlag();
             }
 
             exploreMove();

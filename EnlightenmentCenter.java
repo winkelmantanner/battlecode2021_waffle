@@ -5,7 +5,6 @@ import java.util.HashMap;
 
 public strictfp class EnlightenmentCenter extends Robot {
     final int SHIELD_FACTOR = 50;
-    final int STANDARD_POLITICIAN_INFLUENCE = 50;
     final int MUCKRAKER_INFLUENCE = 1;
 
     // This does not get initialized.
@@ -63,6 +62,9 @@ public strictfp class EnlightenmentCenter extends Robot {
     MapLocation enemy_slanderer_loc_to_broadcast = null;
     int enemy_slanderer_flag_round = -1;
 
+    MapLocation enemy_ec_loc_to_broadcast = null;
+    int enemy_ec_flag_round = -1;
+
     int round_defender_was_built = -12345;
 
     void doFlagStuff(RobotInfo nearest_enemy) throws GameActionException {
@@ -98,6 +100,9 @@ public strictfp class EnlightenmentCenter extends Robot {
             if(rc.getRoundNum() - enemy_slanderer_flag_round > 10) {
                 enemy_slanderer_loc_to_broadcast = null;
             }
+            if(rc.getRoundNum() - enemy_ec_flag_round > 30) {
+                enemy_ec_loc_to_broadcast = null;
+            }
 
             switch((rc.getRoundNum() % MAX_FLAG_MEANING_VALUE) + 1) {
                 case NEUTRAL_EC:
@@ -120,6 +125,11 @@ public strictfp class EnlightenmentCenter extends Robot {
                 case ENEMY_SLANDERER: 
                     if(enemy_slanderer_loc_to_broadcast != null) {
                         trySetFlag(getValueForFlagMaskedLocation(ENEMY_SLANDERER, enemy_slanderer_loc_to_broadcast));
+                    }
+                    break;
+                case ENEMY_EC:
+                    if(enemy_ec_loc_to_broadcast != null) {
+                        trySetFlag(getValueForFlagMaskedLocation(ENEMY_EC, enemy_ec_loc_to_broadcast));
                     }
                     break;
             }
@@ -155,6 +165,10 @@ public strictfp class EnlightenmentCenter extends Robot {
                             case ENEMY_SLANDERER:
                                 enemy_slanderer_loc_to_broadcast = getMapLocationFromMaskedFlagValue(flag_val);
                                 enemy_slanderer_flag_round = rc.getRoundNum();
+                                break;
+                            case ENEMY_EC:
+                                enemy_ec_loc_to_broadcast = getMapLocationFromMaskedFlagValue(flag_val);
+                                enemy_ec_flag_round = rc.getRoundNum();
                                 break;
                         }
                     }
@@ -215,7 +229,7 @@ public strictfp class EnlightenmentCenter extends Robot {
     int round_last_built_nec_converter = -12345;
     MapLocation last_nec_converter_target_loc = null;
 
-    final double SLAN_DEFENDER_RATIO = 2.5;
+    final double SLAN_DEFENDER_RATIO = 2.25;
 
     int round_last_built_attacker = -12345;
     final int MAX_ATTACKER_INF = 1000;
@@ -293,6 +307,15 @@ public strictfp class EnlightenmentCenter extends Robot {
                 last_nec_converter_target_loc = neutral_ec_loc_to_broadcast;
                 System.out.println("Built nec converter for " + String.valueOf(influence));
             }
+        } else if(
+            rc.getInfluence() >= 2000
+            && rc.getRoundNum() % 7 <= 2
+        ) {
+            if(myBuild(
+                RobotType.POLITICIAN,
+                (int)(Math.random() * rc.getInfluence()),
+                directions
+            )) {}
         } else if(
             (num_slans_built * SLAN_DEFENDER_RATIO) > num_defenders_built
             && available_influence > MAX_DEFENDER_INFLUENCE
