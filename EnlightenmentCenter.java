@@ -230,9 +230,7 @@ public strictfp class EnlightenmentCenter extends Robot {
         RobotInfo nearest_enemy = nearestRobot(null, -1, rc.getTeam().opponent(), null);
         RobotInfo nearest_enemy_pol = nearestRobot(null, -1, rc.getTeam().opponent(), RobotType.POLITICIAN);
 
-        boolean do_exponential_growth_by_buff = (
-            EMPOWER_FACTOR_THRESHOLD <= rc.getEmpowerFactor(rc.getTeam(), 2 + (int)RobotType.POLITICIAN.initialCooldown)
-        );
+        boolean do_exponential_growth_by_buff = shouldUseBuff(RobotType.POLITICIAN.initialCooldown);
 
         if(nearest_enemy != null
             || rc.getRoundNum() > 50
