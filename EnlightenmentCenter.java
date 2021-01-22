@@ -215,6 +215,11 @@ public strictfp class EnlightenmentCenter extends Robot {
     int round_last_built_nec_converter = -12345;
     MapLocation last_nec_converter_target_loc = null;
 
+    final double SLAN_DEFENDER_RATIO = 2.5;
+
+    int round_last_built_attacker = -12345;
+    final int MAX_ATTACKER_INF = 1000;
+
     public void runTurnRobot() throws GameActionException {
         shield_conviction = SHIELD_FACTOR * getEcPassiveIncome(rc.getRoundNum());
         int available_influence = rc.getInfluence() - shield_conviction;
@@ -232,16 +237,14 @@ public strictfp class EnlightenmentCenter extends Robot {
             10 <= rc.getEmpowerFactor(rc.getTeam(), 2 + (int)RobotType.POLITICIAN.initialCooldown)
         );
 
-        if(nearest_enemy != null
-            || rc.getRoundNum() > 50
-        ) {
+        if(nearest_enemy != null) {
             if(should_build_slans) {
-                System.out.println("SLANDERER 50 round limit hit!!");
+                System.out.println("SETTINGS should_build_slans to false");
             }
             should_build_slans = false;
         }
         if(should_build_slans
-            && num_slans_built - num_defenders_built < 3
+            && (num_slans_built * SLAN_DEFENDER_RATIO) - num_defenders_built < 3
             && available_influence >= shield_conviction + SLAN_STEPS[0]
         ) {
             if(myBuild(
@@ -291,7 +294,7 @@ public strictfp class EnlightenmentCenter extends Robot {
                 System.out.println("Built nec converter for " + String.valueOf(influence));
             }
         } else if(
-            num_slans_built > num_defenders_built
+            (num_slans_built * SLAN_DEFENDER_RATIO) > num_defenders_built
             && available_influence > MAX_DEFENDER_INFLUENCE
         ) {
             int influence = randInt(MIN_DEFENDER_INFLUENCE, MAX_DEFENDER_INFLUENCE);

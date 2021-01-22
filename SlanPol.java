@@ -10,6 +10,7 @@ public strictfp class SlanPol extends Unit {
     SlanPol(RobotController rbt_controller) {
         super(rbt_controller);
         last_round_type = rc.getType();
+        loc_to_guard = where_i_spawned;
         System.out.println("roundNumCreated:" + String.valueOf(roundNumCreated));
     }
 
@@ -99,9 +100,7 @@ public strictfp class SlanPol extends Unit {
             rc.getTeam().opponent(),
             RobotType.MUCKRAKER
         );
-        if(threatening_mr != null
-            && where_i_spawned.distanceSquaredTo(threatening_mr.location) < THREATENING_MR_EMPOWER_DIST2
-        ) {
+        if(threatening_mr != null) {
             // Do not empower unless destruction of the muckraker is guaranteed.
             // Try the dist2 to the muckraker and try the maximum dist2.
             int dist2_to_mr = rc.getLocation().distanceSquaredTo(threatening_mr.location);
@@ -148,12 +147,19 @@ public strictfp class SlanPol extends Unit {
         }
     }
 
-    final int NEAR_HOME_DIST2 = 7*7;
+    MapLocation loc_to_guard = null;
+    final int GUARD_DIST2 = 12*12;
     final int EDGE_DISTANCE = 2;
     boolean spreadNearHome() throws GameActionException {
         MapLocation myLoc = rc.getLocation();
         boolean moved = false;
-        RobotInfo adj_friendly_pol = nearestRobot(null, 2, rc.getTeam(), RobotType.POLITICIAN);
+        AverageLocation slan_al = new AverageLocation();
+        RobotInfo [] friendly_rbts = rc.senseNearbyRobots(-1, rc.getTeam());
+        for(RobotInfo rbt : friendly_rbts) {
+            if(rbt.type.equals(RobotType.SLANDERER)) {
+                slan_al.add(rbt.location);
+            }
+        }
         if(       map_max_x != UNKNOWN && map_max_x - myLoc.x < EDGE_DISTANCE) {
             stepWithPassability(myLoc.translate(-1, 0));
         } else if(map_min_x != UNKNOWN && myLoc.x - map_min_x < EDGE_DISTANCE) {
@@ -163,13 +169,11 @@ public strictfp class SlanPol extends Unit {
         } else if(map_min_y != UNKNOWN && myLoc.y - map_min_y < EDGE_DISTANCE) {
             stepWithPassability(myLoc.translate(0, 1));
         }
-        if(adj_friendly_pol != null) {
-            if(stepWithPassability(rc.getLocation().directionTo(adj_friendly_pol.location).opposite())) {
-                moved = true;
-                System.out.println("I stepped away from pol at " + adj_friendly_pol.location.toString());
-            }
-        } else if(rc.getLocation().distanceSquaredTo(where_i_spawned) >= NEAR_HOME_DIST2) {
-            moved = stepWithPassability(where_i_spawned);
+        if(!slan_al.is_empty()) {
+            loc_to_guard = slan_al.get();
+        }
+        if(rc.getLocation().distanceSquaredTo(loc_to_guard) >= GUARD_DIST2) {
+            moved = stepWithPassability(loc_to_guard);
         } else {
             moved = tryMove(randomDirection());
         }
