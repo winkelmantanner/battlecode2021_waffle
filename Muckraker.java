@@ -86,7 +86,7 @@ public strictfp class Muckraker extends Unit {
         // Now that where_i_saw_enemy_slanderer is accurate, we can flag the slanderer and more
 
         flagEnemies();
-        flagMapEdges();
+        flagAndUpdateMapEdges();
         flagNeutralECs();
         flagEnemySlanderer();
         // The later flag overrides the earlier
