@@ -208,13 +208,7 @@ abstract public strictfp class Robot {
 
         boolean did_set_flag = false;
         int neutral_ec_id = -1;
-        RobotInfo neutral_ec = null;
-        for(RobotInfo rbt : rc.senseNearbyRobots(
-            rc.getType().sensorRadiusSquared,
-            Team.NEUTRAL
-        )) {
-            neutral_ec = rbt;
-        }
+        RobotInfo neutral_ec = nearestRobot(null, -1, Team.NEUTRAL, null);
         if(neutral_ec != null) {
             int value_for_flag = getValueForFlagMaskedLocation(
                 getNeutralEcMeaningWithConv(
@@ -361,6 +355,30 @@ abstract public strictfp class Robot {
             }
         }
         return nearest;
+    }
+
+
+    double getEmpowerConvAvailable(final int conv) throws GameActionException {
+        return (
+            conv - GameConstants.EMPOWER_TAX
+        ) * rc.getEmpowerFactor(rc.getTeam(), 0);
+    }
+    double getEmpowerConvAvailable() throws GameActionException {
+        return getEmpowerConvAvailable(rc.getConviction());
+    }
+    boolean getConvertMode(RobotInfo enemy_ec) throws GameActionException {
+        boolean convert_mode = false;
+        if(enemy_ec != null) {
+            double friendlyConvInArea = 0;
+            RobotInfo [] friendlyRbts = rc.senseNearbyRobots(-1, rc.getTeam());
+            for(RobotInfo rbt : friendlyRbts) {
+                if(rbt.type.equals(RobotType.POLITICIAN)) {
+                    friendlyConvInArea += getEmpowerConvAvailable(rbt.conviction);
+                }
+            }
+            convert_mode = (friendlyConvInArea > 1.5 * enemy_ec.conviction);
+        }
+        return convert_mode;
     }
 
 

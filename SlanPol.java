@@ -14,29 +14,13 @@ public strictfp class SlanPol extends Unit {
         System.out.println("roundNumCreated:" + String.valueOf(roundNumCreated));
     }
 
-    double getEmpowerConvAvailable(final int conv) throws GameActionException {
-        return (
-            conv - GameConstants.EMPOWER_TAX
-        ) * rc.getEmpowerFactor(rc.getTeam(), 0);
-    }
-    double getEmpowerConvAvailable() throws GameActionException {
-        return getEmpowerConvAvailable(rc.getConviction());
-    }
+
     void attackerEmpower() throws GameActionException {
         final double conv_available = getEmpowerConvAvailable();
 
-        double friendlyConvInArea = 0;
         RobotInfo enemy_ec = nearestRobot(null, -1, rc.getTeam().opponent(), RobotType.ENLIGHTENMENT_CENTER);
-        boolean convert_mode = false;
-        if(enemy_ec != null) {
-            RobotInfo [] friendlyRbts = rc.senseNearbyRobots(-1, rc.getTeam());
-            for(RobotInfo rbt : friendlyRbts) {
-                if(rbt.type.equals(RobotType.POLITICIAN)) {
-                    friendlyConvInArea += getEmpowerConvAvailable(rbt.conviction);
-                }
-            }
-            convert_mode = (friendlyConvInArea > 1.5 * enemy_ec.conviction);
-        }
+        boolean convert_mode = getConvertMode(enemy_ec);
+
         // These two vars are used only if convert_mode
         double best_blockers_eliminatable = 0;
         int best_r_unsquared = -1;

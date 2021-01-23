@@ -100,10 +100,16 @@ public strictfp class Muckraker extends Unit {
         
 
         RobotInfo nearest_enemy_pol = nearestRobot(null, -1, enemy, RobotType.POLITICIAN);
+        RobotInfo adj_friendly_pol = nearestRobot(null, 2, rc.getTeam(), RobotType.POLITICIAN);
         RobotInfo adj_enemy_ec = nearestRobot(null, 2, enemy, RobotType.ENLIGHTENMENT_CENTER);
 
-        if(null == adj_enemy_ec
-            && (
+        if(
+            (
+                adj_enemy_ec == null
+                || (adj_friendly_pol != null
+                    && getConvertMode(adj_enemy_ec)
+                )
+            ) && (
                 nearest_enemy_pol == null
                 || null == nearestRobot(null, 1, rc.getTeam(), RobotType.ENLIGHTENMENT_CENTER)
             )
@@ -117,6 +123,30 @@ public strictfp class Muckraker extends Unit {
                 && stepWithPassability(where_i_saw_enemy_slanderer)
             ) {
                 System.out.println("I (muckraker) stepped toward target: " + where_i_saw_enemy_slanderer.toString());
+            }
+
+            double nec_max_dist1 = sensor_radius_nonsquared - 1; // prevent mucks from getting stuck with nec on edge of sensor radius
+            RobotInfo nearest_neutral_ec = nearestRobot(
+                null,
+                (int)(nec_max_dist1 * nec_max_dist1),
+                Team.NEUTRAL,
+                null
+            );
+            if(nearest_neutral_ec != null) {
+                MapLocation nec_loc = nearest_neutral_ec.location;
+                int my_dist2_from_nec = myLoc.distanceSquaredTo(nec_loc);
+                boolean already_covered = false;
+                for(RobotInfo rbt : rc.senseNearbyRobots(-1, rc.getTeam())) {
+                    if(rbt.location.distanceSquaredTo(nec_loc) <= my_dist2_from_nec) {
+                        // The robot needn't be a muck
+                        // We need to leave room for pols to convert the nec
+                        already_covered = true;
+                        break;
+                    }
+                }
+                if(!already_covered) {
+                    stepWithPassability(nec_loc);
+                }
             }
 
             if(is_cruncher) {
