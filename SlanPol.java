@@ -10,20 +10,42 @@ public strictfp class SlanPol extends Unit {
     SlanPol(RobotController rbt_controller) {
         super(rbt_controller);
         last_round_type = rc.getType();
+        loc_to_guard = where_i_spawned;
         System.out.println("roundNumCreated:" + String.valueOf(roundNumCreated));
     }
 
-    double getEmpowerConvAvailable() throws GameActionException {
+    double getEmpowerConvAvailable(final int conv) throws GameActionException {
         return (
-            rc.getConviction() * rc.getEmpowerFactor(rc.getTeam(), 0)
+            conv * rc.getEmpowerFactor(rc.getTeam(), 0)
         ) - GameConstants.EMPOWER_TAX;
+    }
+    double getEmpowerConvAvailable() throws GameActionException {
+        return getEmpowerConvAvailable(rc.getConviction());
     }
     void attackerEmpower() throws GameActionException {
         final double conv_available = getEmpowerConvAvailable();
+
+        double friendlyConvInArea = 0;
+        RobotInfo enemy_ec = nearestRobot(null, -1, rc.getTeam().opponent(), RobotType.ENLIGHTENMENT_CENTER);
+        boolean convert_mode = false;
+        if(enemy_ec != null) {
+            RobotInfo [] friendlyRbts = rc.senseNearbyRobots(-1, rc.getTeam());
+            for(RobotInfo rbt : friendlyRbts) {
+                if(rbt.type.equals(RobotType.POLITICIAN)) {
+                    friendlyConvInArea += getEmpowerConvAvailable(rbt.conviction);
+                }
+            }
+            convert_mode = (friendlyConvInArea > 1.5 * enemy_ec.conviction);
+        }
+        // These two vars are used only if convert_mode
+        double best_blockers_eliminatable = 0;
+        int best_r_unsquared = -1;
+
         for(int r_unsquared = 1; r_unsquared * r_unsquared <= rc.getType().actionRadiusSquared; r_unsquared++) {
-            int actionR2 = r_unsquared * r_unsquared;
+            final int actionR2 = r_unsquared * r_unsquared;
             double transferrableConviction = 0;
             boolean just_do_it = false;
+            int blockers_eliminatable = 0;
             int rbts_len = -1; // This variable is used for logs only
             if(conv_available >= 1) {
                 RobotInfo [] rbts = rc.senseNearbyRobots(actionR2);
@@ -45,11 +67,24 @@ public strictfp class SlanPol extends Unit {
                                 transferrableConviction += conv_available / rbts.length;
                             }
                         }
+
+                        if(enemy_ec != null
+                            && rbt.location.distanceSquaredTo(enemy_ec.location) <= 2
+                            && Math.floor(conv_available / rbts.length) >= 1 + rbt.conviction
+                        ) {
+                            blockers_eliminatable++;
+                        }
                     }
                 }
             }
-            if (rc.canEmpower(actionR2) &&
-                (
+            if(convert_mode && !just_do_it) {
+                if(blockers_eliminatable > best_blockers_eliminatable) {
+                    best_blockers_eliminatable = blockers_eliminatable;
+                    best_r_unsquared = r_unsquared;
+                }
+            } else if(
+                rc.canEmpower(actionR2)
+                && (
                     just_do_it
                     || (transferrableConviction
                         >= conv_available
@@ -63,6 +98,13 @@ public strictfp class SlanPol extends Unit {
                 System.out.println("empowering  my conviction:" + String.valueOf(rc.getConviction()) + " actionR2:" + String.valueOf(actionR2) + " transferrableConviction:" + String.valueOf(transferrableConviction) + " conv_available:" + String.valueOf(conv_available) + " rbts_len:" + String.valueOf(rbts_len) + " just_do_it:" + String.valueOf(just_do_it) + " target_loc_from_flag == null:" + (target_loc_from_flag == null));
                 rc.empower(actionR2);
             }
+        }
+        if(convert_mode
+            && best_blockers_eliminatable >= 3 // Important constant here
+            && rc.canEmpower(best_r_unsquared * best_r_unsquared)
+        ) {
+            System.out.println("empowering  convert_mode==true  my conviction:" + String.valueOf(rc.getConviction()) + " best_r_unsquared:" + String.valueOf(best_r_unsquared) + " best_blockers_eliminatable:" + String.valueOf(best_blockers_eliminatable) + " conv_available:" + String.valueOf(conv_available));
+            rc.empower(best_r_unsquared * best_r_unsquared);
         }
     }
 
@@ -99,9 +141,7 @@ public strictfp class SlanPol extends Unit {
             rc.getTeam().opponent(),
             RobotType.MUCKRAKER
         );
-        if(threatening_mr != null
-            && where_i_spawned.distanceSquaredTo(threatening_mr.location) < THREATENING_MR_EMPOWER_DIST2
-        ) {
+        if(threatening_mr != null) {
             // Do not empower unless destruction of the muckraker is guaranteed.
             // Try the dist2 to the muckraker and try the maximum dist2.
             int dist2_to_mr = rc.getLocation().distanceSquaredTo(threatening_mr.location);
@@ -148,12 +188,19 @@ public strictfp class SlanPol extends Unit {
         }
     }
 
-    final int NEAR_HOME_DIST2 = 7*7;
+    MapLocation loc_to_guard = null;
+    final int GUARD_DIST2 = 12*12;
     final int EDGE_DISTANCE = 2;
     boolean spreadNearHome() throws GameActionException {
         MapLocation myLoc = rc.getLocation();
         boolean moved = false;
-        RobotInfo adj_friendly_pol = nearestRobot(null, 2, rc.getTeam(), RobotType.POLITICIAN);
+        AverageLocation slan_al = new AverageLocation();
+        RobotInfo [] friendly_rbts = rc.senseNearbyRobots(-1, rc.getTeam());
+        for(RobotInfo rbt : friendly_rbts) {
+            if(rbt.type.equals(RobotType.SLANDERER)) {
+                slan_al.add(rbt.location);
+            }
+        }
         if(       map_max_x != UNKNOWN && map_max_x - myLoc.x < EDGE_DISTANCE) {
             stepWithPassability(myLoc.translate(-1, 0));
         } else if(map_min_x != UNKNOWN && myLoc.x - map_min_x < EDGE_DISTANCE) {
@@ -163,13 +210,11 @@ public strictfp class SlanPol extends Unit {
         } else if(map_min_y != UNKNOWN && myLoc.y - map_min_y < EDGE_DISTANCE) {
             stepWithPassability(myLoc.translate(0, 1));
         }
-        if(adj_friendly_pol != null) {
-            if(stepWithPassability(rc.getLocation().directionTo(adj_friendly_pol.location).opposite())) {
-                moved = true;
-                System.out.println("I stepped away from pol at " + adj_friendly_pol.location.toString());
-            }
-        } else if(rc.getLocation().distanceSquaredTo(where_i_spawned) >= NEAR_HOME_DIST2) {
-            moved = stepWithPassability(where_i_spawned);
+        if(!slan_al.is_empty()) {
+            loc_to_guard = slan_al.get();
+        }
+        if(rc.getLocation().distanceSquaredTo(loc_to_guard) >= GUARD_DIST2) {
+            moved = stepWithPassability(loc_to_guard);
         } else {
             moved = tryMove(randomDirection());
         }
@@ -198,7 +243,12 @@ public strictfp class SlanPol extends Unit {
         if(target_loc_from_flag == null) {
             if(rc.canGetFlag(id_of_ec_to_look_to)) {
                 int flag_val = rc.getFlag(id_of_ec_to_look_to);
-                if(getMeaningWithoutConv(flag_val) == NEUTRAL_EC) {
+                int meaning = getMeaningWithoutConv(flag_val);
+                if(meaning == NEUTRAL_EC
+                    || (meaning == ENEMY_EC
+                        && rc.getConviction() >= STANDARD_POLITICIAN_INFLUENCE
+                    )
+                ) {
                     target_loc_from_flag = getMapLocationFromMaskedFlagValue(flag_val);
                     round_num_of_flag_read = rc.getRoundNum();
                     System.out.println("Received target_loc_from_flag:" + target_loc_from_flag.toString());
@@ -258,6 +308,7 @@ public strictfp class SlanPol extends Unit {
 
         flagEnemies();
         flagAndUpdateMapEdges();
+        flagEnemyEcs();
         flagNeutralECs();
         // The later flag overrides the earlier
 
