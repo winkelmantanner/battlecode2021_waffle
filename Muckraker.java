@@ -100,11 +100,12 @@ public strictfp class Muckraker extends Unit {
         
 
         RobotInfo nearest_enemy_pol = nearestRobot(null, -1, enemy, RobotType.POLITICIAN);
+        RobotInfo adj_enemy_ec = nearestRobot(null, 2, enemy, RobotType.ENLIGHTENMENT_CENTER);
 
-        if(null == nearestRobot(null, 2, enemy, RobotType.ENLIGHTENMENT_CENTER)
-            || (
+        if(null == adj_enemy_ec
+            && (
                 nearest_enemy_pol == null
-                && null == nearestRobot(null, 1, rc.getTeam(), RobotType.ENLIGHTENMENT_CENTER)
+                || null == nearestRobot(null, 1, rc.getTeam(), RobotType.ENLIGHTENMENT_CENTER)
             )
         ) {
             // Move only if not a guard
