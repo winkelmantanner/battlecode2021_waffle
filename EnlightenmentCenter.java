@@ -66,7 +66,11 @@ public strictfp class EnlightenmentCenter extends Robot {
     int round_defender_was_built = -12345;
 
     void doFlagStuff(RobotInfo nearest_enemy) throws GameActionException {
-        standardFlagReset();
+
+        // NOT standardFlagReset
+        if(rc.canSetFlag(0)) {
+            trySetFlag(0);
+        }
 
         if(2 == rc.getRoundNum() - round_last_built_nec_converter) {
             int flag_val = getValueForFlagMaskedLocation(
@@ -277,7 +281,7 @@ public strictfp class EnlightenmentCenter extends Robot {
             neutral_ec_loc_to_broadcast != null
             && !necs_done.containsKey(neutral_ec_loc_to_broadcast)
             && available_influence > getInfForNecConverter()
-            && rc.getRoundNum() - round_last_built_nec_converter > 25
+            && rc.getRoundNum() - round_last_built_nec_converter > 10
         ) {
             int influence = getInfForNecConverter();
             if(myBuild(
