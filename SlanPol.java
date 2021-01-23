@@ -16,8 +16,8 @@ public strictfp class SlanPol extends Unit {
 
     double getEmpowerConvAvailable(final int conv) throws GameActionException {
         return (
-            conv * rc.getEmpowerFactor(rc.getTeam(), 0)
-        ) - GameConstants.EMPOWER_TAX;
+            conv - GameConstants.EMPOWER_TAX
+        ) * rc.getEmpowerFactor(rc.getTeam(), 0);
     }
     double getEmpowerConvAvailable() throws GameActionException {
         return getEmpowerConvAvailable(rc.getConviction());
@@ -112,23 +112,6 @@ public strictfp class SlanPol extends Unit {
         if(getEmpowerConvAvailable() <= 0 && rc.canEmpower(1)) {
             rc.empower(1);
             System.out.println("Empowered due to being damaged beyond usability");
-        }
-    }
-
-    final double SELF_EMPOWER_MIN_MULTIPLIER = 1.25;
-    void empowerOnHomeEcIfBuffedEnough() throws GameActionException {
-        if(loc_of_ec_to_look_to != null) {
-            int target_dist2 = rc.getLocation().distanceSquaredTo(loc_of_ec_to_look_to);
-            if(target_dist2 <= 2) {
-                final double conv_available = getEmpowerConvAvailable();
-                RobotInfo [] rbts = rc.senseNearbyRobots(target_dist2);
-                if(conv_available / rbts.length > SELF_EMPOWER_MIN_MULTIPLIER * rc.getInfluence()
-                    && rc.canEmpower(target_dist2)
-                ) {
-                    System.out.println("I empowered on a friendly EC!!!");
-                    rc.empower(target_dist2);
-                }
-            }
         }
     }
 
@@ -313,8 +296,6 @@ public strictfp class SlanPol extends Unit {
         // The later flag overrides the earlier
 
         empowerIfDamagedBeyondUsability();
-
-        empowerOnHomeEcIfBuffedEnough();
 
         if(is_defender) { // influence is not reduced by damage
             // I'm a defender
