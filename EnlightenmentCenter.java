@@ -331,9 +331,16 @@ public strictfp class EnlightenmentCenter extends Robot {
             rc.getRoundNum() < 0.5 * GameConstants.GAME_MAX_NUMBER_OF_ROUNDS
             && rc.getInfluence() >= 5 + MUCKRAKER_INFLUENCE // Note: this is NOT available_influence
         ) {
+            int influence = 1;
+            if(available_influence > STANDARD_POLITICIAN_INFLUENCE
+                && enemy_slanderer_loc_to_broadcast != null
+                && Math.random() < 0.25
+            ) {
+                influence = 1 + (int)(Math.random() * STANDARD_POLITICIAN_INFLUENCE);
+            }
             myBuild(
                 RobotType.MUCKRAKER,
-                MUCKRAKER_INFLUENCE,
+                influence,
                 directions
             );
         }
