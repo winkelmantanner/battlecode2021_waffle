@@ -159,11 +159,17 @@ public strictfp class EnlightenmentCenter extends Robot {
                                 }
                                 break;
                             case NEUTRAL_EC:
-                                MapLocation ml = getMapLocationFromMaskedFlagValue(flag_val);
-                                if(!necs_done.containsKey(ml)) {
+                                final MapLocation ml = getMapLocationFromMaskedFlagValue(flag_val);
+                                final int max_conv = getMaxConvFromMeaning(flag_val);
+                                if(!necs_done.containsKey(ml)
+                                    && (neutral_ec_max_conv == -1
+                                        || max_conv < neutral_ec_max_conv
+                                    )
+                                ) {
                                     neutral_ec_loc_to_broadcast = ml;
                                     neutral_ec_flag_round = rc.getRoundNum();
-                                    neutral_ec_max_conv = getMaxConvFromMeaning(flag_val);
+                                    neutral_ec_max_conv = max_conv;
+                                    System.out.println("Got better nec max_conv:" + max_conv + " ml:" + ml);
                                 }
                                 break;
                             case ENEMY_SLANDERER:
