@@ -15,80 +15,82 @@ public strictfp class SlanPol extends Unit {
     }
 
 
+    final int VALUE_OF_BLOCKER = 5; // influence units
+    int getValueFromNumBlockersDestroyed(final int num_blockers) {
+        return 5 * num_blockers * num_blockers * num_blockers;
+    }
     void attackerEmpower() throws GameActionException {
         final double conv_available = getEmpowerConvAvailable();
 
         RobotInfo enemy_ec = nearestRobot(null, -1, rc.getTeam().opponent(), RobotType.ENLIGHTENMENT_CENTER);
-        boolean convert_mode = getConvertMode(enemy_ec);
+        final boolean convert_mode = getConvertMode(enemy_ec);
 
-        // These two vars are used only if convert_mode
-        double best_blockers_eliminatable = 0;
-        int best_r_unsquared = -1;
+        int best_action_r2 = -1;
+        double best_transf_conv = 0;
 
         for(int r_unsquared = 1; r_unsquared * r_unsquared <= rc.getType().actionRadiusSquared; r_unsquared++) {
             final int actionR2 = r_unsquared * r_unsquared;
             double transferrableConviction = 0;
+            int num_blockers_destroyed = 0;
             boolean just_do_it = false;
-            int blockers_eliminatable = 0;
             int rbts_len = -1; // This variable is used for logs only
             if(conv_available >= 1) {
                 RobotInfo [] rbts = rc.senseNearbyRobots(actionR2);
                 rbts_len = rbts.length;
+                final double conv_per_rbt = conv_available / rbts.length;
                 for(RobotInfo rbt : rbts) {
                     if(rbt.team != rc.getTeam()) {
                         if(
                             rbt.type.equals(RobotType.ENLIGHTENMENT_CENTER)
-                            && conv_available / rbts.length > rbt.conviction
+                            && conv_per_rbt > rbt.conviction
                         ) {
                             // It will convert the EC: just do it
                             just_do_it = true;
                         } else if(target_loc_from_flag == null) {
                             if(rbt.type.equals(RobotType.MUCKRAKER)) {
-                                transferrableConviction += Math.min(rbt.conviction + 1, Math.floor(conv_available / rbts.length));
+                                transferrableConviction += Math.min(rbt.conviction + 1, Math.floor(conv_per_rbt));
                             } else if(rbt.type.equals(RobotType.POLITICIAN)) {
-                                transferrableConviction += Math.min(rbt.conviction + rbt.influence, conv_available / rbts.length);
+                                transferrableConviction += Math.min(rbt.conviction + rbt.influence, conv_per_rbt);
                             } else {
-                                transferrableConviction += conv_available / rbts.length;
+                                transferrableConviction += conv_per_rbt;
                             }
                         }
-
                         if(enemy_ec != null
-                            && rbt.location.distanceSquaredTo(enemy_ec.location) <= 2
-                            && Math.floor(conv_available / rbts.length) >= 1 + rbt.conviction
+                            && convert_mode
+                            && conv_per_rbt >= 1 + rbt.conviction
+                            && rbt.location.isAdjacentTo(enemy_ec.location)
                         ) {
-                            blockers_eliminatable++;
+                            num_blockers_destroyed++;
                         }
                     }
                 }
             }
-            if(convert_mode && !just_do_it) {
-                if(blockers_eliminatable > best_blockers_eliminatable) {
-                    best_blockers_eliminatable = blockers_eliminatable;
-                    best_r_unsquared = r_unsquared;
-                }
-            } else if(
+            // if !convert_mode, num blockers is 0, so this value will be 0
+            transferrableConviction += getValueFromNumBlockersDestroyed(num_blockers_destroyed);
+            if(just_do_it) {
+                transferrableConviction += 12345;
+            }
+            // System.out.println("actionR2" + actionR2 + " convert_mode" + convert_mode + " num_blockers_destroyed" + num_blockers_destroyed + " transferrableConviction:" + transferrableConviction);
+
+            if(
                 rc.canEmpower(actionR2)
-                && (
-                    just_do_it
-                    || (transferrableConviction
-                        >= conv_available
-                            * recipDecay(
-                                rc.getRoundNum() - roundNumCreated,
-                                100
-                            )
-                    )
-                )
+                && transferrableConviction > best_transf_conv
             ) {
-                System.out.println("empowering  my conviction:" + String.valueOf(rc.getConviction()) + " actionR2:" + String.valueOf(actionR2) + " transferrableConviction:" + String.valueOf(transferrableConviction) + " conv_available:" + String.valueOf(conv_available) + " rbts_len:" + String.valueOf(rbts_len) + " just_do_it:" + String.valueOf(just_do_it) + " target_loc_from_flag == null:" + (target_loc_from_flag == null));
-                rc.empower(actionR2);
+                best_transf_conv = transferrableConviction;
+                best_action_r2 = actionR2;
             }
         }
-        if(convert_mode
-            && best_blockers_eliminatable >= 3 // Important constant here
-            && rc.canEmpower(best_r_unsquared * best_r_unsquared)
+        
+        if(rc.canEmpower(best_action_r2)
+            && best_transf_conv
+                >= conv_available
+                    * recipDecay(
+                        rc.getRoundNum() - roundNumCreated,
+                        100
+                    )
         ) {
-            System.out.println("empowering  convert_mode==true  my conviction:" + String.valueOf(rc.getConviction()) + " best_r_unsquared:" + String.valueOf(best_r_unsquared) + " best_blockers_eliminatable:" + String.valueOf(best_blockers_eliminatable) + " conv_available:" + String.valueOf(conv_available));
-            rc.empower(best_r_unsquared * best_r_unsquared);
+            System.out.println("empowering  convert_mode:" + convert_mode + " my conviction:" + String.valueOf(rc.getConviction()) + " best_action_r2:" + String.valueOf(best_action_r2) + " best_transf_conv:" + String.valueOf(best_transf_conv) + " conv_available:" + String.valueOf(conv_available) + " target_loc_from_flag == null:" + (target_loc_from_flag == null));
+            rc.empower(best_action_r2);
         }
     }
 
