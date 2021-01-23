@@ -255,14 +255,14 @@ abstract public strictfp class Robot {
         return did_set_flag;
     }
 
-    boolean flagMapEdges() throws GameActionException {
+    boolean flagAndUpdateMapEdges() throws GameActionException {
         standardFlagReset();
-        return flagSpecificMapEdge(MAP_MAX_X)
-            || flagSpecificMapEdge(MAP_MIN_X)
-            || flagSpecificMapEdge(MAP_MAX_Y)
-            || flagSpecificMapEdge(MAP_MIN_Y);
+        return flagAndUpdateSpecificMapEdge(MAP_MAX_X)
+            || flagAndUpdateSpecificMapEdge(MAP_MIN_X)
+            || flagAndUpdateSpecificMapEdge(MAP_MAX_Y)
+            || flagAndUpdateSpecificMapEdge(MAP_MIN_Y);
     }
-    boolean flagSpecificMapEdge(
+    boolean flagAndUpdateSpecificMapEdge(
         final int which_edge // must be MAP_MAX_X, MAP_MIN_X, MAP_MAX_Y, or MAP_MIN_Y
     ) throws GameActionException {
         int dx = 0;
@@ -292,6 +292,12 @@ abstract public strictfp class Robot {
             } else {
                 map_edge_detected = true;
             }
+        }
+        switch(which_edge) {
+            case MAP_MAX_X:  map_max_x = extreme_value;  break;
+            case MAP_MIN_X:  map_min_x = extreme_value;  break;
+            case MAP_MAX_Y:  map_max_y = extreme_value;  break;
+            case MAP_MIN_Y:  map_min_y = extreme_value;  break;
         }
         if(map_edge_detected) {
             int value_for_flag = getValueForFlagRaw(which_edge, (short)extreme_value);
@@ -341,6 +347,7 @@ abstract public strictfp class Robot {
 
 
 
+    final double EMPOWER_FACTOR_THRESHOLD = 5;
     boolean shouldUseBuff(final double cooldown) {
         return EMPOWER_FACTOR_THRESHOLD <= rc.getEmpowerFactor(
             rc.getTeam(),

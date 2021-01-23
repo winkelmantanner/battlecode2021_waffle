@@ -102,20 +102,31 @@ abstract public strictfp class Unit extends Robot {
         return fuzzyStep(rc.getLocation().directionTo(dest));
     }
 
-    Direction explore_dir = null;
+    MapLocation explore_loc = null;
+    int getRandCoordOffset() {
+        return (int)(((2 * Math.random()) - 1) * GameConstants.MAP_MAX_WIDTH); // the max height better be the same
+    }
     boolean exploreMove() throws GameActionException {
         boolean moved = false;
-        if(explore_dir == null) {
-            explore_dir = directions[rc.getID() % directions.length];
+        MapLocation myLoc = rc.getLocation();
+        if(explore_loc == null) {
+            explore_loc = new MapLocation(
+                myLoc.x + getRandCoordOffset(),
+                myLoc.y + getRandCoordOffset()
+            );
         }
-        if(rc.isReady()) {
-            for(int k = 0; k < directions.length; k++) {
-                if(tryMove(explore_dir)) {
-                    moved = true;
-                    break;
-                } else {
-                    explore_dir = randomDirection();
-                }
+        // now we are guaranteed that explore_loc != null
+        if(rc.isReady()
+            && stepWithPassability(explore_loc)
+        ) {
+            final double edge_closeness = 0.5 * sensor_radius_nonsquared;
+            if(rc.canSenseLocation(explore_loc)
+                || (map_max_x != UNKNOWN && explore_loc.x > map_max_x && map_max_x - myLoc.x < edge_closeness)
+                || (map_min_x != UNKNOWN && explore_loc.x < map_min_x && myLoc.x - map_min_x < edge_closeness)
+                || (map_max_y != UNKNOWN && explore_loc.y > map_max_y && map_max_y - myLoc.y < edge_closeness)
+                || (map_min_y != UNKNOWN && explore_loc.y < map_min_y && myLoc.y - map_min_y < edge_closeness)
+            ) {
+                explore_loc = null;
             }
         }
         return moved;

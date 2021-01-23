@@ -257,7 +257,7 @@ public strictfp class SlanPol extends Unit {
         mapEdgeFlagReceivingStuffNonEc();
 
         flagEnemies();
-        flagMapEdges();
+        flagAndUpdateMapEdges();
         flagNeutralECs();
         // The later flag overrides the earlier
 
