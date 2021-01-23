@@ -251,6 +251,12 @@ public strictfp class EnlightenmentCenter extends Robot {
         RobotInfo nearest_enemy = nearestRobot(null, -1, rc.getTeam().opponent(), null);
         RobotInfo nearest_enemy_pol = nearestRobot(null, -1, rc.getTeam().opponent(), RobotType.POLITICIAN);
 
+        boolean need_another_defender = (
+            (num_slans_built * SLAN_DEFENDER_RATIO)
+                - num_defenders_built
+                >= 10
+        );
+
         if(nearest_enemy != null) {
             if(should_build_slans) {
                 System.out.println("SETTINGS should_build_slans to false");
@@ -258,7 +264,7 @@ public strictfp class EnlightenmentCenter extends Robot {
             should_build_slans = false;
         }
         if(should_build_slans
-            && (num_slans_built * SLAN_DEFENDER_RATIO) - num_defenders_built < 3
+            && !need_another_defender
             && available_influence >= shield_conviction + SLAN_STEPS[0]
         ) {
             if(myBuild(
@@ -305,7 +311,7 @@ public strictfp class EnlightenmentCenter extends Robot {
                 directions
             )) {}
         } else if(
-            (num_slans_built * SLAN_DEFENDER_RATIO) > num_defenders_built
+            need_another_defender
             && available_influence > MAX_DEFENDER_INFLUENCE
         ) {
             int influence = randInt(MIN_DEFENDER_INFLUENCE, MAX_DEFENDER_INFLUENCE);
