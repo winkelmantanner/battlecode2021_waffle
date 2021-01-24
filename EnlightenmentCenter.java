@@ -323,6 +323,9 @@ public strictfp class EnlightenmentCenter extends Robot {
             && available_influence > MAX_DEFENDER_INFLUENCE
         ) {
             int influence = randInt(MIN_DEFENDER_INFLUENCE, MAX_DEFENDER_INFLUENCE);
+            while(Math.random() < 0.25) {
+                influence *= 2;
+            }
             boolean building_defender = true;
             if(myBuild(
                 RobotType.POLITICIAN,
