@@ -171,23 +171,12 @@ public strictfp class SlanPol extends Unit {
                 slan_al.add(rbt.location);
             }
         }
-        if(       map_max_x != UNKNOWN && map_max_x - myLoc.x < EDGE_DISTANCE) {
-            stepWithPassability(myLoc.translate(-1, 0));
-        } else if(map_min_x != UNKNOWN && myLoc.x - map_min_x < EDGE_DISTANCE) {
-            stepWithPassability(myLoc.translate(1, 0));
-        } else if(map_max_y != UNKNOWN && map_max_y - myLoc.y < EDGE_DISTANCE) {
-            stepWithPassability(myLoc.translate(0, -1));
-        } else if(map_min_y != UNKNOWN && myLoc.y - map_min_y < EDGE_DISTANCE) {
-            stepWithPassability(myLoc.translate(0, 1));
-        }
+
         if(!slan_al.is_empty()) {
             loc_to_guard = slan_al.get();
         }
-        if(rc.getLocation().distanceSquaredTo(loc_to_guard) >= GUARD_DIST2) {
-            moved = stepWithPassability(loc_to_guard);
-        } else {
-            moved = tryMove(randomDirection());
-        }
+
+        exploreMove();
         return moved;
     }
 
