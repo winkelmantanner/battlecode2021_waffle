@@ -257,10 +257,16 @@ public strictfp class EnlightenmentCenter extends Robot {
         RobotInfo nearest_enemy = nearestRobot(null, -1, rc.getTeam().opponent(), null);
         RobotInfo nearest_enemy_pol = nearestRobot(null, -1, rc.getTeam().opponent(), RobotType.POLITICIAN);
 
+        boolean in_second_half = rc.getRoundNum() > 0.5 * GameConstants.GAME_MAX_NUMBER_OF_ROUNDS;
+
         boolean need_another_defender = (
             (num_slans_built * SLAN_DEFENDER_RATIO)
                 - num_defenders_built
                 >= 10
+            || (
+                50 < rc.getRoundNum() - round_defender_was_built
+                && in_second_half
+            )
         );
 
         if(nearest_enemy != null) {
@@ -339,8 +345,7 @@ public strictfp class EnlightenmentCenter extends Robot {
                 }
             }
         } else if(
-            rc.getRoundNum() < 0.5 * GameConstants.GAME_MAX_NUMBER_OF_ROUNDS
-            && rc.getInfluence() >= 5 + MUCKRAKER_INFLUENCE // Note: this is NOT available_influence
+            rc.getInfluence() >= 5 + MUCKRAKER_INFLUENCE // Note: this is NOT available_influence
         ) {
             int influence = 1;
             if(available_influence > STANDARD_POLITICIAN_INFLUENCE
