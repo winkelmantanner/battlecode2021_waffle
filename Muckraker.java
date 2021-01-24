@@ -26,7 +26,7 @@ public strictfp class Muckraker extends Unit {
             if(meaning == ENEMY_SLANDERER
                 || (
                     meaning == ENEMY_EC
-                    && rc.getRoundNum() % 250 < 50
+                    && rc.getRoundNum() % 250 < 25
                 )
             ) {
                 target_loc_from_flag = getMapLocationFromMaskedFlagValue(flag_val);
