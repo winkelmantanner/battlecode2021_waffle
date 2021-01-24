@@ -271,6 +271,8 @@ public strictfp class EnlightenmentCenter extends Robot {
         }
         if(should_build_slans
             && !need_another_defender
+            && rc.getRoundNum() - round_when_i_last_built_slan
+                >= 2 * rc.getType().actionCooldown / passability_of_my_tile
             && available_influence >= shield_conviction + SLAN_STEPS[0]
         ) {
             if(myBuild(
