@@ -103,32 +103,32 @@ public strictfp class SlanPol extends Unit {
 
     final int THREATENING_MR_FOLLOW_DIST2 = 11*11;
     final int THREATENING_MR_EMPOWER_DIST2 = 9*9;
-    void empowerOnThreateningMuckrakers() throws GameActionException {
-        RobotInfo threatening_mr = nearestRobot(
+    void empowerOnThreateningEnemies() throws GameActionException {
+        RobotInfo threatening_enemy = nearestRobot(
             null,
             rc.getType().actionRadiusSquared,
             rc.getTeam().opponent(),
-            RobotType.MUCKRAKER
+            null
         );
-        if(threatening_mr != null) {
+        if(threatening_enemy != null) {
             // Do not empower unless destruction of the muckraker is guaranteed.
             // Try the dist2 to the muckraker and try the maximum dist2.
-            int dist2_to_mr = rc.getLocation().distanceSquaredTo(threatening_mr.location);
-            final int num_rbts_minimum = rc.senseNearbyRobots(dist2_to_mr).length;
+            int dist2_to_enemy = rc.getLocation().distanceSquaredTo(threatening_enemy.location);
+            final int num_rbts_minimum = rc.senseNearbyRobots(dist2_to_enemy).length;
             final int num_rbts_maximum = rc.senseNearbyRobots(rc.getType().actionRadiusSquared).length;
             final double conv_available = getEmpowerConvAvailable();
             int dist2_to_empower = -1;
-            if(conv_available / num_rbts_maximum >= 1 + threatening_mr.conviction) {
+            if(conv_available / num_rbts_maximum >= 1 + threatening_enemy.conviction) {
                 dist2_to_empower = rc.getType().actionRadiusSquared;
-            } else if(conv_available / num_rbts_minimum >= 1 + threatening_mr.conviction) {
-                dist2_to_empower = dist2_to_mr;
+            } else if(conv_available / num_rbts_minimum >= 1 + threatening_enemy.conviction) {
+                dist2_to_empower = dist2_to_enemy;
             } else {
-                System.out.println("Did not empower solely because I could not guarantee the destruction of the muckraker at " + threatening_mr.location.toString());
+                System.out.println("Did not empower solely because I could not guarantee the destruction of the enemy at " + threatening_enemy.location.toString());
             }
             if(dist2_to_empower > 0
                 && rc.canEmpower(dist2_to_empower)
             ) {
-                System.out.println("empowering on muckraker  myconviction:" + String.valueOf(rc.getConviction()) + " dist2_to_empower:" + String.valueOf(dist2_to_empower) + " conv_available:" + String.valueOf(conv_available));
+                System.out.println("empowering on enemy  myconviction:" + String.valueOf(rc.getConviction()) + " dist2_to_empower:" + String.valueOf(dist2_to_empower) + " conv_available:" + String.valueOf(conv_available));
                 rc.empower(dist2_to_empower);
             }
         }
@@ -146,10 +146,11 @@ public strictfp class SlanPol extends Unit {
         }
     }
 
-    void moveTowardEnemyMuckrakers() throws GameActionException {
+    void moveTowardEnemies() throws GameActionException {
         if(rc.isReady()) {
-            RobotInfo target_rbt = nearestRobot(null, -1, rc.getTeam().opponent(), RobotType.MUCKRAKER);
+            RobotInfo target_rbt = nearestRobot(null, -1, rc.getTeam().opponent(), null);
             if(target_rbt != null
+                && getEmpowerConvAvailable() >= 1 + target_rbt.conviction
                 && where_i_spawned.distanceSquaredTo(target_rbt.location) < THREATENING_MR_FOLLOW_DIST2
             ) {
                 stepWithPassability(target_rbt.location);
@@ -285,9 +286,9 @@ public strictfp class SlanPol extends Unit {
 
         if(is_defender) { // influence is not reduced by damage
             // I'm a defender
-            empowerOnThreateningMuckrakers();
+            empowerOnThreateningEnemies();
 
-            moveTowardEnemyMuckrakers();
+            moveTowardEnemies();
 
             spreadNearHome();
         } else {
