@@ -85,7 +85,7 @@ public strictfp class SlanPol extends Unit {
             && best_transf_conv
                 >= conv_available
                     * recipDecay(
-                        rc.getRoundNum() - roundNumCreated,
+                        rc.getRoundNum() - round_num_became_pol,
                         100
                     )
         ) {
@@ -261,7 +261,11 @@ public strictfp class SlanPol extends Unit {
         }
     }
 
+    int round_num_became_pol = -1;
     public void runTurnPolitician() throws GameActionException {
+        if(round_num_became_pol == -1) {
+            round_num_became_pol = rc.getRoundNum();
+        }
         updateAssignmentFromFlag();
         mapEdgeFlagReceivingStuffNonEc();
 
@@ -315,8 +319,11 @@ public strictfp class SlanPol extends Unit {
         }
         
         slanFlagReceivingStuff();
-
-        if (tryMove(randomDirection())) {}
+        for(int k = 0; k < 10; k++) {
+            if(tryMove(randomDirection())) {
+                break;
+            }
+        }
     }
 
     public void runTurnUnit() throws GameActionException {
