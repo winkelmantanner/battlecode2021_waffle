@@ -239,7 +239,7 @@ public strictfp class EnlightenmentCenter extends Robot {
     int round_last_built_nec_converter = -12345;
     MapLocation last_nec_converter_target_loc = null;
 
-    final double SLAN_DEFENDER_RATIO = 2.25;
+    final double SLAN_DEFENDER_RATIO = 1.75;
 
     int round_last_built_attacker = -12345;
     final int MAX_ATTACKER_INF = 1000;
