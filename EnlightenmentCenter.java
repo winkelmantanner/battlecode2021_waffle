@@ -255,6 +255,7 @@ public strictfp class EnlightenmentCenter extends Robot {
 
         // This is used in more than one place
         RobotInfo nearest_enemy = nearestRobot(null, -1, rc.getTeam().opponent(), null);
+        RobotInfo nearest_enemy_muck = nearestRobot(null, -1, rc.getTeam().opponent(), RobotType.MUCKRAKER);
         RobotInfo nearest_enemy_pol = nearestRobot(null, -1, rc.getTeam().opponent(), RobotType.POLITICIAN);
 
         boolean in_second_half = rc.getRoundNum() > 0.5 * GameConstants.GAME_MAX_NUMBER_OF_ROUNDS;
@@ -269,7 +270,7 @@ public strictfp class EnlightenmentCenter extends Robot {
             )
         );
 
-        if(nearest_enemy != null) {
+        if(nearest_enemy_muck != null) {
             if(should_build_slans) {
                 System.out.println("SETTINGS should_build_slans to false");
             }
