@@ -361,42 +361,20 @@ public strictfp class EnlightenmentCenter extends Robot {
             );
         }
 
-        if(
-            rc.getRoundNum() - round_when_i_last_bidded > 100
-            && rc.getRoundNum() > (rc.getID() % 100)
-        ) {
-            i_should_bid = true;
-        }
-        if(
-            rc.getTeamVotes() > last_round_team_votes
-            && !i_bidded_last_round
-        ) {
-            if(i_should_bid) {
-                System.out.println("changing i_should_bid to false");
-            }
-            // Another friendly EC is bidding
-            i_should_bid = false;
-        }
-        i_bidded_last_round = false;
-        if(
-            i_should_bid
-            && Math.random() < 0.9
-        ) {
-            int amount = (int) (
-                Math.random() * available_influence
-                    / (SHIELD_FACTOR / 2) // divide by 2 since Math.random averages 0.5
-                // This will result in the conviction converging on 2*shield_conviction
-            );
-            if(rc.canBid(amount)) {
-                rc.bid(amount);
-                i_bidded_last_round = true;
-                round_when_i_last_bidded = rc.getRoundNum();
-                System.out.println("I bidded " + String.valueOf(amount));
-            } else {
-                System.out.println("I could not bid " + String.valueOf(amount));
-            }
-            // When amount is zero, the EC will not bid.
-            // That is how it sees if other friendly ECs are bidding.
+        // The bidding system is really poorly documented.
+        // See https://github.com/battlecode/battlecode21/blob/276480addacefb543e4470cbe3a4be7ff05dc659/engine/src/main/battlecode/world/GameWorld.java#L370
+        int amount = (int) (
+            Math.random() * available_influence
+                / (SHIELD_FACTOR / 2) // divide by 2 since Math.random averages 0.5
+            // This will result in the conviction converging on 2*shield_conviction
+        );
+        if(rc.canBid(amount)) {
+            rc.bid(amount);
+            i_bidded_last_round = true;
+            round_when_i_last_bidded = rc.getRoundNum();
+            System.out.println("I bidded " + String.valueOf(amount));
+        } else {
+            System.out.println("I could not bid " + String.valueOf(amount));
         }
         last_round_team_votes = rc.getTeamVotes();
 
