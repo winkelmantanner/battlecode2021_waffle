@@ -187,19 +187,19 @@ abstract public strictfp class Robot {
 
     // Powers of phi, length 16
     // Each entry is ceil(phi**index)
-    final int [] NEC_CONV_VALS = {1, 2, 3, 5, 7, 12, 18, 30, 47, 76, 123, 199, 322, 521, 843, 1364};
-    int getNeutralEcMeaningWithConv(final int meaning_wo_conv, final int conviction) {
+    final int [] CONV_VALS = {1, 2, 3, 5, 7, 12, 18, 30, 47, 76, 123, 199, 322, 521, 843, 1364};
+    int getMeaningWithConv(final int meaning_wo_conv, final int conviction) {
         int idx = 0;
-        for(int k = 0; k < NEC_CONV_VALS.length; k++) {
-            if(conviction <= NEC_CONV_VALS[k]) {
+        for(int k = 0; k < CONV_VALS.length; k++) {
+            if(conviction <= CONV_VALS[k]) {
                 idx = k;
                 break;
             }
         }
         return ((idx << 4) | meaning_wo_conv);
     }
-    int getMaxConvFromMeaning(final int meaning_w_conv) {
-        return NEC_CONV_VALS[(meaning_w_conv >> 16) >> 4];
+    int getMaxConvFromFlagVal(final int flag_val_w_conv) {
+        return CONV_VALS[(flag_val_w_conv >> 16) >> 4];
     }
 
 
@@ -211,7 +211,7 @@ abstract public strictfp class Robot {
         RobotInfo neutral_ec = nearestRobot(null, -1, Team.NEUTRAL, null);
         if(neutral_ec != null) {
             int value_for_flag = getValueForFlagMaskedLocation(
-                getNeutralEcMeaningWithConv(
+                getMeaningWithConv(
                     NEUTRAL_EC,
                     neutral_ec.conviction
                 ),
@@ -228,22 +228,11 @@ abstract public strictfp class Robot {
         standardFlagReset();
 
         boolean did_set_flag = false;
-        int x_sum = 0;
-        int y_sum = 0;
-        int count = 0;
-        for(RobotInfo rbt : rc.senseNearbyRobots(
-            rc.getType().sensorRadiusSquared,
-            rc.getTeam().opponent()
-        )) {
-            x_sum += rbt.location.x;
-            y_sum += rbt.location.y;
-            count++;
-        }
-        if(count > 0) {
-            MapLocation enemy_centroid = new MapLocation(x_sum / count, y_sum / count);
+        RobotInfo nearest_enemy = nearestRobot(null, -1, rc.getTeam().opponent(), null);
+        if(nearest_enemy != null) {
             int flag_val = getValueForFlagMaskedLocation(
-                ENEMY_ROBOT,
-                enemy_centroid
+                getMeaningWithConv(ENEMY_ROBOT, nearest_enemy.conviction),
+                nearest_enemy.location
             );
             if(trySetFlag(flag_val)) {
                 did_set_flag = true;

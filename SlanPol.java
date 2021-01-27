@@ -102,7 +102,6 @@ public strictfp class SlanPol extends Unit {
     }
 
     final int THREATENING_MR_FOLLOW_DIST2 = 11*11;
-    final int THREATENING_MR_EMPOWER_DIST2 = 9*9;
     void empowerOnThreateningEnemies() throws GameActionException {
         RobotInfo threatening_enemy = nearestRobot(
             null,
@@ -146,7 +145,7 @@ public strictfp class SlanPol extends Unit {
         }
     }
 
-    void moveTowardEnemies() throws GameActionException {
+    void moveTowardSensableEnemies() throws GameActionException {
         if(rc.isReady()) {
             RobotInfo target_rbt = nearestRobot(null, -1, rc.getTeam().opponent(), null);
             if(target_rbt != null
@@ -158,9 +157,26 @@ public strictfp class SlanPol extends Unit {
         }
     }
 
+    final int GUARD_DIST2 = 14*14;
+    void moveTowardEnemiesFromFlag() throws GameActionException {
+        // This is for heavier defenders
+        // PRE: receiveEnemyLocFromFlag must be called regularly
+        if(enemy_loc_from_flag != null
+            && loc_of_ec_to_look_to != null
+        ) {
+            double conv_available = getEmpowerConvAvailable();
+            if(conv_available >= 1 + enemy_max_conv_from_flag
+                && conv_available <= 4 * (1 + enemy_max_conv_from_flag)
+                && loc_of_ec_to_look_to.distanceSquaredTo(enemy_loc_from_flag) <= GUARD_DIST2
+            ) {
+                if(stepWithPassability(enemy_loc_from_flag)) {
+                    System.out.println("Stepped toward flagged enemy enemy_loc_from_flag:" + enemy_loc_from_flag + " enemy_max_conv_from_flag:" + enemy_max_conv_from_flag);
+                }
+            }
+        }
+    }
+
     MapLocation loc_to_guard = null;
-    final int GUARD_DIST2 = 12*12;
-    final int EDGE_DISTANCE = 2;
     boolean spreadNearHome() throws GameActionException {
         MapLocation myLoc = rc.getLocation();
         boolean moved = false;
@@ -176,7 +192,18 @@ public strictfp class SlanPol extends Unit {
             loc_to_guard = slan_al.get();
         }
 
-        exploreMove();
+        if(loc_to_guard != null
+            && myLoc.distanceSquaredTo(loc_to_guard) > GUARD_DIST2
+        ) {
+            stepWithPassability(loc_to_guard);
+        } else {
+            for(int k = 0; k < 10; k++) {
+                if(tryMove(randomDirection())) {
+                    break;
+                }
+            }
+        }
+        
         return moved;
     }
 
@@ -235,17 +262,27 @@ public strictfp class SlanPol extends Unit {
 
     final int HIDING_DISTANCE = 5; // not squared
     MapLocation enemy_loc_from_flag = null;
+    int enemy_max_conv_from_flag = -1;
     int round_of_enemy_loc_from_flag = -1;
-    void slanFlagReceivingStuff() throws GameActionException {
+    void receiveEnemyLocFromFlag() throws GameActionException {
         if(enemy_loc_from_flag == null) {
             if(rc.canGetFlag(id_of_ec_to_look_to)) {
                 int flag_val = rc.getFlag(id_of_ec_to_look_to);
                 if(getMeaningWithoutConv(flag_val) == ENEMY_ROBOT) {
                     enemy_loc_from_flag = getMapLocationFromMaskedFlagValue(flag_val);
+                    enemy_max_conv_from_flag = getMaxConvFromFlagVal(flag_val);
                     round_of_enemy_loc_from_flag = rc.getRoundNum();
                 }
             }
-        } else {
+        }
+        if(10 < rc.getRoundNum() - round_of_enemy_loc_from_flag) {
+            enemy_loc_from_flag = null;
+            enemy_max_conv_from_flag = -1;
+        }
+    }
+    void slanFlagReceivingStuff() throws GameActionException {
+        // PRE: receiveEnemyLocFromFlag must be called regularly
+        if(enemy_loc_from_flag != null) {
             Direction enemy_dir = where_i_spawned.directionTo(enemy_loc_from_flag);
             Direction hiding_dir = enemy_dir.opposite();
             MapLocation hiding_spot = where_i_spawned.translate(
@@ -256,9 +293,6 @@ public strictfp class SlanPol extends Unit {
                 System.out.println("HID BASED ON FLAGGED ENEMY at " + enemy_loc_from_flag.toString());
             }
         }
-        if(10 < rc.getRoundNum() - round_of_enemy_loc_from_flag) {
-            enemy_loc_from_flag = null;
-        }
     }
 
     int round_num_became_pol = -1;
@@ -268,6 +302,7 @@ public strictfp class SlanPol extends Unit {
         }
         updateAssignmentFromFlag();
         mapEdgeFlagReceivingStuffNonEc();
+        receiveEnemyLocFromFlag();
 
         flagEnemies();
         flagAndUpdateMapEdges();
@@ -281,9 +316,16 @@ public strictfp class SlanPol extends Unit {
             // I'm a defender
             empowerOnThreateningEnemies();
 
-            moveTowardEnemies();
+            moveTowardSensableEnemies();
 
-            spreadNearHome();
+            if(rc.getInfluence() > MAX_DEFENDER_INFLUENCE) {
+                // We're a heavy defender
+                moveTowardEnemiesFromFlag();
+
+                spreadNearHome();
+            } else {
+                exploreMove();
+            }
         } else {
             // I'm an attacker
             attackerEmpower();
@@ -298,6 +340,7 @@ public strictfp class SlanPol extends Unit {
 
     public void runTurnSlanderer() throws GameActionException {
         mapEdgeFlagReceivingStuffNonEc();
+        receiveEnemyLocFromFlag();
 
         flagEnemies();
 
