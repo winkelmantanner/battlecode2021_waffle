@@ -50,6 +50,7 @@ public strictfp class EnlightenmentCenter extends Robot {
     int current_built_robot_array_index = 0;
 
     MapLocation enemy_loc_to_broadcast = null;
+    int enemy_max_conv = -1;
     int enemy_flag_round = -1;
 
     MapLocation neutral_ec_loc_to_broadcast = null;
@@ -74,9 +75,11 @@ public strictfp class EnlightenmentCenter extends Robot {
             trySetFlag(0);
         }
 
+        MapLocation myLoc = rc.getLocation();
+
         if(2 == rc.getRoundNum() - round_last_built_nec_converter) {
             int flag_val = getValueForFlagMaskedLocation(
-                getNeutralEcMeaningWithConv(NEUTRAL_EC, neutral_ec_max_conv),
+                getMeaningWithConv(NEUTRAL_EC, neutral_ec_max_conv),
                 last_nec_converter_target_loc
             );
             if(trySetFlag(flag_val)) {
@@ -93,9 +96,11 @@ public strictfp class EnlightenmentCenter extends Robot {
         } else {
             if(nearest_enemy != null) {
                 enemy_loc_to_broadcast = nearest_enemy.location;
+                enemy_max_conv = nearest_enemy.conviction;
                 enemy_flag_round = rc.getRoundNum();
             } else if(rc.getRoundNum() - enemy_flag_round > 5) {
                 enemy_loc_to_broadcast = null;
+                enemy_max_conv = -1;
             }
             if(rc.getRoundNum() - neutral_ec_flag_round > 20) {
                 neutral_ec_loc_to_broadcast = null;
@@ -112,14 +117,17 @@ public strictfp class EnlightenmentCenter extends Robot {
                 case NEUTRAL_EC:
                     if(neutral_ec_loc_to_broadcast != null) {
                         trySetFlag(getValueForFlagMaskedLocation(
-                            getNeutralEcMeaningWithConv(NEUTRAL_EC, neutral_ec_max_conv),
+                            getMeaningWithConv(NEUTRAL_EC, neutral_ec_max_conv),
                             neutral_ec_loc_to_broadcast
                         ));
                     }
                     break;
                 case ENEMY_ROBOT:
                     if(enemy_loc_to_broadcast != null) {
-                        trySetFlag(getValueForFlagMaskedLocation(ENEMY_ROBOT, enemy_loc_to_broadcast));
+                        trySetFlag(getValueForFlagMaskedLocation(
+                            getMeaningWithConv(ENEMY_ROBOT, enemy_max_conv),
+                            enemy_loc_to_broadcast
+                        ));
                     }
                     break;
                 case MAP_MAX_X:   broadcastMapEdgeIfApplicable(MAP_MAX_X, map_max_x);  break;
@@ -154,13 +162,19 @@ public strictfp class EnlightenmentCenter extends Robot {
                                 // If we (the EC) see an enemy, flag it instead of what other robots say. 
                                 // This only runs if we saw an ENEMY_ROBOT flag from another robot.
                                 if(nearest_enemy == null) {
-                                    enemy_loc_to_broadcast = getMapLocationFromMaskedFlagValue(flag_val);
+                                    MapLocation l = getMapLocationFromMaskedFlagValue(flag_val);
+                                    if(enemy_loc_to_broadcast == null
+                                        || myLoc.distanceSquaredTo(l) < myLoc.distanceSquaredTo(enemy_loc_to_broadcast)
+                                    ) {
+                                        enemy_loc_to_broadcast = l;
+                                        enemy_max_conv = getMaxConvFromFlagVal(flag_val);
                                     enemy_flag_round = rc.getRoundNum();
+                                }
                                 }
                                 break;
                             case NEUTRAL_EC:
                                 final MapLocation ml = getMapLocationFromMaskedFlagValue(flag_val);
-                                final int max_conv = getMaxConvFromMeaning(flag_val);
+                                final int max_conv = getMaxConvFromFlagVal(flag_val);
                                 if(!necs_done.containsKey(ml)
                                     && (neutral_ec_max_conv == -1
                                         || max_conv < neutral_ec_max_conv
