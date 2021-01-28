@@ -247,6 +247,8 @@ public strictfp class EnlightenmentCenter extends Robot {
     final int SLAN_BUILD_INTERVAL = 3;
     int round_when_i_last_built_slan = -12345;
     int num_slans_built = 0;
+    int total_slan_inf = 0;
+    int total_muck_inf = 0;
 
     HashMap<MapLocation, Boolean> necs_done = new HashMap<MapLocation, Boolean>();
 
@@ -290,7 +292,36 @@ public strictfp class EnlightenmentCenter extends Robot {
             }
             should_build_slans = false;
         }
-        if(should_build_slans
+        if(
+            neutral_ec_loc_to_broadcast != null
+            && !necs_done.containsKey(neutral_ec_loc_to_broadcast)
+            && available_influence > getInfForNecConverter()
+            && rc.getRoundNum() - round_last_built_nec_converter > 10
+        ) {
+            int influence = getInfForNecConverter();
+            if(myBuild(
+                RobotType.POLITICIAN,
+                influence,
+                directions
+            )) {
+                round_last_built_nec_converter = rc.getRoundNum();
+                total_slan_inf += influence;
+                last_nec_converter_target_loc = neutral_ec_loc_to_broadcast;
+                System.out.println("Built nec converter for " + String.valueOf(influence));
+            }
+        } else if(
+            total_muck_inf * 2 < total_slan_inf
+            && Math.random() < 0.25
+        ) {
+            int influence = 1 + (int)(Math.random() * Math.min(available_influence, 500));
+            if(myBuild(
+                RobotType.MUCKRAKER,
+                influence,
+                directions
+            )) {
+                total_muck_inf += influence;
+            }
+        } else if(should_build_slans
             && !need_another_defender
             && rc.getRoundNum() - round_when_i_last_built_slan
                 >= 2 * rc.getType().actionCooldown / passability_of_my_tile
@@ -314,22 +345,6 @@ public strictfp class EnlightenmentCenter extends Robot {
                 1,
                 Direction.cardinalDirections()
             );
-        } else if(
-            neutral_ec_loc_to_broadcast != null
-            && !necs_done.containsKey(neutral_ec_loc_to_broadcast)
-            && available_influence > getInfForNecConverter()
-            && rc.getRoundNum() - round_last_built_nec_converter > 10
-        ) {
-            int influence = getInfForNecConverter();
-            if(myBuild(
-                RobotType.POLITICIAN,
-                influence,
-                directions
-            )) {
-                round_last_built_nec_converter = rc.getRoundNum();
-                last_nec_converter_target_loc = neutral_ec_loc_to_broadcast;
-                System.out.println("Built nec converter for " + String.valueOf(influence));
-            }
         } else if(
             rc.getInfluence() >= 2000
             && rc.getRoundNum() % 7 <= 2
