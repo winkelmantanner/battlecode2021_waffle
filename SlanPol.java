@@ -15,7 +15,6 @@ public strictfp class SlanPol extends Unit {
     }
 
 
-    final int VALUE_OF_BLOCKER = 5; // influence units
     int getValueFromNumBlockersDestroyed(final int num_blockers) {
         return 5 * num_blockers * num_blockers * num_blockers;
     }
@@ -47,6 +46,7 @@ public strictfp class SlanPol extends Unit {
                             // It will convert the EC: just do it
                             just_do_it = true;
                         } else if(target_loc_from_flag == null) {
+                            // For defenders, target_loc_from_flag will always be null
                             if(rbt.type.equals(RobotType.MUCKRAKER)) {
                                 transferrableConviction += Math.min(rbt.conviction + 1, Math.floor(conv_per_rbt));
                             } else if(rbt.type.equals(RobotType.POLITICIAN)) {
@@ -101,35 +101,42 @@ public strictfp class SlanPol extends Unit {
         }
     }
 
-    final int THREATENING_MR_FOLLOW_DIST2 = 11*11;
-    void empowerOnThreateningEnemies() throws GameActionException {
-        RobotInfo threatening_enemy = nearestRobot(
-            null,
-            rc.getType().actionRadiusSquared,
-            rc.getTeam().opponent(),
-            null
-        );
-        if(threatening_enemy != null) {
-            // Do not empower unless destruction of the muckraker is guaranteed.
-            // Try the dist2 to the muckraker and try the maximum dist2.
-            int dist2_to_enemy = rc.getLocation().distanceSquaredTo(threatening_enemy.location);
-            final int num_rbts_minimum = rc.senseNearbyRobots(dist2_to_enemy).length;
-            final int num_rbts_maximum = rc.senseNearbyRobots(rc.getType().actionRadiusSquared).length;
-            final double conv_available = getEmpowerConvAvailable();
-            int dist2_to_empower = -1;
-            if(conv_available / num_rbts_maximum >= 1 + threatening_enemy.conviction) {
-                dist2_to_empower = rc.getType().actionRadiusSquared;
-            } else if(conv_available / num_rbts_minimum >= 1 + threatening_enemy.conviction) {
-                dist2_to_empower = dist2_to_enemy;
-            } else {
-                System.out.println("Did not empower solely because I could not guarantee the destruction of the enemy at " + threatening_enemy.location.toString());
+    final int DESTRUCTION_VALUE = 5;
+    final int DISABLE_VALUE = 3;
+    final int IN_GUARD_RANGE_MULTIPLIER = 4;
+    void defenderEmpower() throws GameActionException {
+        final int [] r2s = {1, 2, 9};
+        int best_val = -1;
+        int best_r2 = -1;
+        double unbuffed_conv_available = rc.getConviction() - GameConstants.EMPOWER_TAX;
+        double buffed_conv_available = getEmpowerConvAvailable();
+        for(int r2 : r2s) {
+            int value = 0;
+            RobotInfo [] rbts = rc.senseNearbyRobots(r2);
+            for(RobotInfo rbt : rbts) {
+                int value_gain = 0;
+                if(rbt.team.equals(rc.getTeam().opponent())) {
+                    if(buffed_conv_available / rbts.length >= 1 + rbt.conviction) {
+                        value_gain = DESTRUCTION_VALUE + 1 + rbt.conviction;
+                    }
+                }
+                if(loc_to_guard != null
+                    && loc_to_guard.distanceSquaredTo(rbt.location) <= GUARD_DIST2
+                ) {
+                    value_gain *= IN_GUARD_RANGE_MULTIPLIER;
+                }
+                value += value_gain;
             }
-            if(dist2_to_empower > 0
-                && rc.canEmpower(dist2_to_empower)
-            ) {
-                System.out.println("empowering on enemy  myconviction:" + String.valueOf(rc.getConviction()) + " dist2_to_empower:" + String.valueOf(dist2_to_empower) + " conv_available:" + String.valueOf(conv_available));
-                rc.empower(dist2_to_empower);
+            if(value > best_val) {
+                best_r2 = r2;
+                best_val = value;
             }
+        }
+        if(best_val >= unbuffed_conv_available
+            && rc.canEmpower(best_r2)
+        ) {
+            System.out.println("empowering on enemy  myconviction:" + String.valueOf(rc.getConviction()) + " best_r2:" + String.valueOf(best_r2) + " buffed_conv_available:" + String.valueOf(buffed_conv_available) + " best_val:" + best_val);
+            rc.empower(best_r2);
         }
     }
 
@@ -150,7 +157,7 @@ public strictfp class SlanPol extends Unit {
             RobotInfo target_rbt = nearestRobot(null, -1, rc.getTeam().opponent(), null);
             if(target_rbt != null
                 && getEmpowerConvAvailable() >= 1 + target_rbt.conviction
-                && where_i_spawned.distanceSquaredTo(target_rbt.location) < THREATENING_MR_FOLLOW_DIST2
+                && where_i_spawned.distanceSquaredTo(target_rbt.location) < GUARD_DIST2
             ) {
                 stepWithPassability(target_rbt.location);
             }
@@ -166,17 +173,17 @@ public strictfp class SlanPol extends Unit {
         ) {
             double conv_available = getEmpowerConvAvailable();
             if(conv_available >= 1 + enemy_max_conv_from_flag
-                && conv_available <= 4 * (1 + enemy_max_conv_from_flag)
+                && conv_available <= IN_GUARD_RANGE_MULTIPLIER * (1 + enemy_min_conv_from_flag) // Note: min
                 && loc_of_ec_to_look_to.distanceSquaredTo(enemy_loc_from_flag) <= GUARD_DIST2
             ) {
                 if(stepWithPassability(enemy_loc_from_flag)) {
-                    System.out.println("Stepped toward flagged enemy enemy_loc_from_flag:" + enemy_loc_from_flag + " enemy_max_conv_from_flag:" + enemy_max_conv_from_flag);
+                    System.out.println("Stepped toward flagged enemy enemy_loc_from_flag:" + enemy_loc_from_flag + " enemy_max_conv_from_flag:" + enemy_max_conv_from_flag + " enemy_min_conv_from_flag:" + enemy_min_conv_from_flag);
                 }
             }
         }
     }
 
-    MapLocation loc_to_guard = null;
+    MapLocation loc_to_guard = null; // This is set to the spawn loc in the ctor
     boolean spreadNearHome() throws GameActionException {
         MapLocation myLoc = rc.getLocation();
         boolean moved = false;
@@ -226,6 +233,7 @@ public strictfp class SlanPol extends Unit {
     MapLocation target_loc_from_flag = null;
     int round_num_of_flag_read = -1;
     void polFlagReceivingStuff() throws GameActionException {
+        // FOR ATTACKERS ONLY
         if(target_loc_from_flag == null) {
             if(rc.canGetFlag(id_of_ec_to_look_to)) {
                 int flag_val = rc.getFlag(id_of_ec_to_look_to);
@@ -263,6 +271,7 @@ public strictfp class SlanPol extends Unit {
     final int HIDING_DISTANCE = 5; // not squared
     MapLocation enemy_loc_from_flag = null;
     int enemy_max_conv_from_flag = -1;
+    int enemy_min_conv_from_flag = -1;
     int round_of_enemy_loc_from_flag = -1;
     void receiveEnemyLocFromFlag() throws GameActionException {
         if(enemy_loc_from_flag == null) {
@@ -271,6 +280,7 @@ public strictfp class SlanPol extends Unit {
                 if(getMeaningWithoutConv(flag_val) == ENEMY_ROBOT) {
                     enemy_loc_from_flag = getMapLocationFromMaskedFlagValue(flag_val);
                     enemy_max_conv_from_flag = getMaxConvFromFlagVal(flag_val);
+                    enemy_min_conv_from_flag = getMinConvFromFlagVal(flag_val);
                     round_of_enemy_loc_from_flag = rc.getRoundNum();
                 }
             }
@@ -278,6 +288,7 @@ public strictfp class SlanPol extends Unit {
         if(10 < rc.getRoundNum() - round_of_enemy_loc_from_flag) {
             enemy_loc_from_flag = null;
             enemy_max_conv_from_flag = -1;
+            enemy_min_conv_from_flag = -1;
         }
     }
     void slanFlagReceivingStuff() throws GameActionException {
@@ -314,7 +325,7 @@ public strictfp class SlanPol extends Unit {
 
         if(is_defender) { // influence is not reduced by damage
             // I'm a defender
-            empowerOnThreateningEnemies();
+            defenderEmpower();
 
             moveTowardSensableEnemies();
 
