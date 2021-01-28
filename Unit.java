@@ -15,7 +15,9 @@ abstract public strictfp class Unit extends Robot {
                 loc_of_ec_to_look_to = rbt.location;
             }
         }
+        vertical_first = (rc.getID() % 2 == 1); // Set later based on last unknown
     }
+    boolean vertical_first = false;
 
     int id_of_ec_to_look_to = -1;
     MapLocation loc_of_ec_to_look_to = null;
@@ -50,7 +52,6 @@ abstract public strictfp class Unit extends Robot {
     }
     MapLocation [] getPlacesEnemyEcMightBe() throws GameActionException {
         // precondtion: knowMapDims() == true
-        boolean vertical_first = (rc.getID() % 2 == 1);
         MapLocation [] result = new MapLocation[3];
         // In the array, order them horizontal, rotational, vertical (unless vertical_first==true).
         // They are generated in a different order here for calculation convenience.
@@ -100,11 +101,12 @@ abstract public strictfp class Unit extends Robot {
             if(map_min_y == UNKNOWN) {dx =  0; dy = -1; num_unknowns++;}
             if(num_unknowns == 1) {
                 final int dist = 10;
+                vertical_first = (dy != 0);
                 if(stepWithPassability(rc.getLocation().translate(
                     dist * dx,
                     dist * dy
                 ))) {
-                    System.out.println("STEPPED TOWARD UNKNOWN MAP EDGE");
+                    System.out.println("STEPPED TOWARD UNKNOWN MAP EDGE, vertical_first:" + vertical_first);
                 }
             }
             System.out.println("num_unknowns:" + num_unknowns);
