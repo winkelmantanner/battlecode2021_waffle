@@ -55,6 +55,9 @@ public strictfp class Muckraker extends Unit {
         return did_set_flag;
     }
 
+    boolean isBuffraker() {
+        return rc.getInfluence() >= 1 + MUCKRAKER_INFLUENCE;
+    }
 
     public void runTurnUnit() throws GameActionException {
         Team enemy = rc.getTeam().opponent();
@@ -109,6 +112,7 @@ public strictfp class Muckraker extends Unit {
                 || (adj_friendly_pol != null
                     && getConvertMode(adj_enemy_ec)
                 )
+                || isBuffraker()
             ) && (
                 nearest_enemy_pol == null
                 || null == nearestRobot(null, 1, rc.getTeam(), RobotType.ENLIGHTENMENT_CENTER)
@@ -147,6 +151,10 @@ public strictfp class Muckraker extends Unit {
                 if(!already_covered) {
                     stepWithPassability(nec_loc);
                 }
+            }
+
+            if(isBuffraker()) {
+                moveForSymmetricEnemyEc();
             }
 
             if(is_cruncher) {

@@ -12,6 +12,7 @@ abstract public strictfp class Robot {
     double sensor_radius_nonsquared = -1;
 
     final int STANDARD_POLITICIAN_INFLUENCE = 50;
+    final int MUCKRAKER_INFLUENCE = 1;
 
     final int UNKNOWN = -1;
     int map_max_x = UNKNOWN;
@@ -295,12 +296,12 @@ abstract public strictfp class Robot {
             }
         }
         if(map_edge_detected) {
-        switch(which_edge) {
-            case MAP_MAX_X:  map_max_x = extreme_value;  break;
-            case MAP_MIN_X:  map_min_x = extreme_value;  break;
-            case MAP_MAX_Y:  map_max_y = extreme_value;  break;
-            case MAP_MIN_Y:  map_min_y = extreme_value;  break;
-        }
+            switch(which_edge) {
+                case MAP_MAX_X:  map_max_x = extreme_value;  break;
+                case MAP_MIN_X:  map_min_x = extreme_value;  break;
+                case MAP_MAX_Y:  map_max_y = extreme_value;  break;
+                case MAP_MIN_Y:  map_min_y = extreme_value;  break;
+            }
             int value_for_flag = getValueForFlagRaw(which_edge, (short)extreme_value);
             if(trySetFlag(value_for_flag)) {
                 did_set_flag = true;

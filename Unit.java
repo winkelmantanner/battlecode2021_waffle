@@ -40,6 +40,82 @@ abstract public strictfp class Unit extends Robot {
     }
 
 
+
+
+    boolean knowMapDims() {
+        return map_max_x != UNKNOWN
+            && map_min_x != UNKNOWN
+            && map_max_y != UNKNOWN
+            && map_min_y != UNKNOWN;
+    }
+    MapLocation [] getPlacesEnemyEcMightBe() throws GameActionException {
+        // precondtion: knowMapDims() == true
+        boolean vertical_first = (rc.getID() % 2 == 1);
+        MapLocation [] result = new MapLocation[3];
+        // In the array, order them horizontal, rotational, vertical (unless vertical_first==true).
+        // They are generated in a different order here for calculation convenience.
+        result[0] = new MapLocation(-loc_of_ec_to_look_to.x + map_max_x + map_min_x, loc_of_ec_to_look_to.y);
+        result[2] = new MapLocation( loc_of_ec_to_look_to.x, -loc_of_ec_to_look_to.y + map_max_y + map_min_y);
+        result[1] = new MapLocation(result[0].x, result[2].y);
+        if(vertical_first) {
+            MapLocation temp = result[0];
+            result[0] = result[2];
+            result[2] = temp;
+        }
+        return result;
+    }
+    int index_in_places = 0;
+    boolean is_adj_to_enemy_ec = false;
+    boolean moveForSymmetricEnemyEc() throws GameActionException {
+        boolean did_move = false;
+        if(knowMapDims()) {
+            if(index_in_places < 3) {
+                MapLocation [] places = getPlacesEnemyEcMightBe();
+                if(rc.canSenseLocation(places[index_in_places])) {
+                    RobotInfo rbt = rc.senseRobotAtLocation(places[index_in_places]);
+                    if(rbt != null
+                        && rbt.team.equals(rc.getTeam().opponent())
+                        && rbt.type.equals(RobotType.ENLIGHTENMENT_CENTER)
+                    ) {
+                        //FOUND IT
+                    } else {
+                        // We sense that the enemy EC is not there
+                        index_in_places++;
+                    }
+                }
+                if(index_in_places < 3) {
+                    did_move = stepWithPassability(places[index_in_places]);
+                    if(did_move) {
+                        System.out.println("Stepped for symmetric ec loc: " + places[index_in_places]);
+                    }
+                }
+            }
+        } else { // !knowMapDims()
+            int num_unknowns = 0;
+            int dx = 0;
+            int dy = 0;
+            if(map_max_x == UNKNOWN) {dx =  1; dy =  0; num_unknowns++;}
+            if(map_min_x == UNKNOWN) {dx = -1; dy =  0; num_unknowns++;}
+            if(map_max_y == UNKNOWN) {dx =  0; dy =  1; num_unknowns++;}
+            if(map_min_y == UNKNOWN) {dx =  0; dy = -1; num_unknowns++;}
+            if(num_unknowns == 1) {
+                final int dist = 10;
+                if(stepWithPassability(rc.getLocation().translate(
+                    dist * dx,
+                    dist * dy
+                ))) {
+                    System.out.println("STEPPED TOWARD UNKNOWN MAP EDGE");
+                }
+            }
+            System.out.println("num_unknowns:" + num_unknowns);
+        }
+        return did_move;
+    }
+
+
+
+
+
     final double PASSABILITY_RATIO = 0.6;
     boolean stepWithPassability(Direction target_dir) throws GameActionException {
         return stepWithPassability(rc.getLocation().add(target_dir).add(target_dir));
@@ -77,30 +153,30 @@ abstract public strictfp class Unit extends Robot {
         } // otherwise I'm stuck
         return did_move;
     }
-    boolean fuzzyStep(Direction target_dir) throws GameActionException {
-        boolean moved = false;
-        Direction dir = target_dir;
-        for(int k = 0; k < 8; k++) {
-            if(rc.canMove(dir)) {
-                rc.move(dir);
-                moved = true;
-                break;
-            }
-            if(preferRotateRight ^ (k % 2 > 0)) {
-                for(int j = 0; j < k; j++) {
-                    dir = dir.rotateLeft();
-                }
-            } else {
-                for(int j = 0; j < k; j++) {
-                    dir = dir.rotateRight();
-                }
-            }
-        }
-        return moved;
-    }
-    boolean fuzzyStep(MapLocation dest) throws GameActionException {
-        return fuzzyStep(rc.getLocation().directionTo(dest));
-    }
+    // boolean fuzzyStep(Direction target_dir) throws GameActionException {
+    //     boolean moved = false;
+    //     Direction dir = target_dir;
+    //     for(int k = 0; k < 8; k++) {
+    //         if(rc.canMove(dir)) {
+    //             rc.move(dir);
+    //             moved = true;
+    //             break;
+    //         }
+    //         if(preferRotateRight ^ (k % 2 > 0)) {
+    //             for(int j = 0; j < k; j++) {
+    //                 dir = dir.rotateLeft();
+    //             }
+    //         } else {
+    //             for(int j = 0; j < k; j++) {
+    //                 dir = dir.rotateRight();
+    //             }
+    //         }
+    //     }
+    //     return moved;
+    // }
+    // boolean fuzzyStep(MapLocation dest) throws GameActionException {
+    //     return fuzzyStep(rc.getLocation().directionTo(dest));
+    // }
 
     MapLocation explore_loc = null;
     int getRandCoordOffset() {
