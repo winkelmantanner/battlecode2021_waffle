@@ -294,13 +294,13 @@ abstract public strictfp class Robot {
                 map_edge_detected = true;
             }
         }
+        if(map_edge_detected) {
         switch(which_edge) {
             case MAP_MAX_X:  map_max_x = extreme_value;  break;
             case MAP_MIN_X:  map_min_x = extreme_value;  break;
             case MAP_MAX_Y:  map_max_y = extreme_value;  break;
             case MAP_MIN_Y:  map_min_y = extreme_value;  break;
         }
-        if(map_edge_detected) {
             int value_for_flag = getValueForFlagRaw(which_edge, (short)extreme_value);
             if(trySetFlag(value_for_flag)) {
                 did_set_flag = true;
