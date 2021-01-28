@@ -5,7 +5,6 @@ import java.util.HashMap;
 
 public strictfp class EnlightenmentCenter extends Robot {
     final int SHIELD_FACTOR = 50;
-    final int MUCKRAKER_INFLUENCE = 1;
 
     // This does not get initialized.
     // Use it to determine if other friendly ECs are bidding.
