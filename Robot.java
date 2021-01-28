@@ -202,6 +202,14 @@ abstract public strictfp class Robot {
     int getMaxConvFromFlagVal(final int flag_val_w_conv) {
         return CONV_VALS[(flag_val_w_conv >> 16) >> 4];
     }
+    int getMinConvFromFlagVal(final int flag_val_w_conv) {
+        int idx = (flag_val_w_conv >> 16) >> 4;
+        if(idx <= 0) {
+            return 0;
+        } else {
+            return 1 + CONV_VALS[idx - 1];
+        }
+    }
 
 
     boolean flagNeutralECs() throws GameActionException {
