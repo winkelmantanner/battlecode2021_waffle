@@ -2,7 +2,6 @@ package tannerplayer;
 import battlecode.common.*;
 
 public class AverageLocation {
-    AverageLocation() {}
     public double total_x = 0;
     public double total_y = 0;
     public double total_weight = 0;

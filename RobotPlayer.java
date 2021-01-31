@@ -1,3 +1,10 @@
+/**
+ * Tanner says:
+ * This file is the only required file.
+ * Most of the contents of this file come from the examplefuncsplayer provided by Teh Devs.
+ * All the other files were created by me, Tanner.
+ **/
+
 package tannerplayer;
 import battlecode.common.*;
 
@@ -10,7 +17,7 @@ public strictfp class RobotPlayer {
 
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
-     * If this method returns, the robot dies!
+     * If this method returns, the robot becomes unresponsive!
      **/
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
