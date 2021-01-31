@@ -59,7 +59,6 @@ abstract public strictfp class Robot {
     public void beforeRunTurn() {
         roundNumAtStartOfRound = rc.getRoundNum();
 
-        // preferRotateRight == unit ID is odd
         // I used the robot ID because Math.random() returns the same value for different robots.
         preferRotateRight = ((int)(rc.getID() * Math.random())) % 10 < 5;
 

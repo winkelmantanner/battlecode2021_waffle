@@ -118,7 +118,8 @@ public strictfp class Muckraker extends Unit {
                 || null == nearestRobot(null, 1, rc.getTeam(), RobotType.ENLIGHTENMENT_CENTER)
             )
         ) {
-            // Move only if not a guard
+            // If we pass that really complicated condition,
+            //   then we move.
 
             // Try to move toward enemy slanderers seen recently
             if (
@@ -129,6 +130,7 @@ public strictfp class Muckraker extends Unit {
                 System.out.println("I (muckraker) stepped toward target: " + where_i_saw_enemy_slanderer.toString());
             }
 
+            // Move toward necs, but only if there is no friendly robot closer to the nec.
             double nec_max_dist1 = sensor_radius_nonsquared - 1; // prevent mucks from getting stuck with nec on edge of sensor radius
             RobotInfo nearest_neutral_ec = nearestRobot(
                 null,

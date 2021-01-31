@@ -1,13 +1,10 @@
 package tannerplayer;
 import battlecode.common.*;
-
 import java.util.HashMap;
 
 public strictfp class EnlightenmentCenter extends Robot {
     final int SHIELD_FACTOR = 50;
 
-    // This does not get initialized.
-    // Use it to determine if other friendly ECs are bidding.
     int last_round_team_votes = 0;
 
     double passability_of_my_tile = -1;
@@ -390,7 +387,6 @@ public strictfp class EnlightenmentCenter extends Robot {
             );
         }
 
-        // The bidding system is really poorly documented.
         // See https://github.com/battlecode/battlecode21/blob/276480addacefb543e4470cbe3a4be7ff05dc659/engine/src/main/battlecode/world/GameWorld.java#L370
         int amount = (int) (
             Math.random() * available_influence
