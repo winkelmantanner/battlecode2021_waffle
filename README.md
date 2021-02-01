@@ -1,8 +1,8 @@
 # battlecode2021_waffle
 
-This code plays the MIT BattleCode 2021 game.  For more about this, see the [MIT BattleCode site](https://battlecode.org/) and the [2021 game resources](https://2021.battlecode.org/resources).  This year's game was politics themed.
+This code plays the MIT Battlecode 2021 game.  For more about this, see the [MIT Battlecode site](https://battlecode.org/) and the [2021 game resources](https://2021.battlecode.org/resources).  This year's game was politics themed.
 
-This bot was known as "waffle" in the tournaments and on the ranklist.  This bot was a finalist, meaning it placed in the top 16 in the qualification tournament, marking the second year I was a finalist.  This will probably be my last year because only full-time students are eligible to win prizes in BattleCode and I expect to graduate soon.
+This bot was known as "waffle" in the tournaments and on the ranklist.  This bot was a finalist, meaning it placed in the top 16 in the qualification tournament, marking the second year I was a finalist.  This will probably be my last year because only full-time students are eligible to win prizes in Battlecode and I expect to graduate soon.
 
 Here are some facts about this bot.
 
@@ -25,12 +25,12 @@ Here are some facts about this bot.
 ### Muckrakers
 - Small muckrakers (with just 1 influence) explore the map.  When any muckraker sees an enemy slanderer, it uses a flag to communicate with the EC that created it.  Then that EC broadcasts the same flag.  Then all muckrakers from that EC move toward the location of the slanderer.
 - Large muckrakers (a.k.a. buffrakers) were one of the last features I added.  Here are some facts about this bot's large muckrakers:
-    - [ECs build large muckrakers in proportion to slanderers](https://github.com/winkelmantanner/battlecode2021_waffle/blob/49d0a7c799c313e9bdf6f50a614cf4a91a3b4412/EnlightenmentCenter.java#L309).  So if an EC builds no slanderers, it builds no large muckrakers.
+    - [ECs build muckrakers of up to 500 influence in proportion to slanderers](https://github.com/winkelmantanner/battlecode2021_waffle/blob/49d0a7c799c313e9bdf6f50a614cf4a91a3b4412/EnlightenmentCenter.java#L309).  [ECs also build muckrakers of up to 50 influence if they recently received a flag about an enemy slanderer](https://github.com/winkelmantanner/battlecode2021_waffle/blob/49d0a7c799c313e9bdf6f50a614cf4a91a3b4412/EnlightenmentCenter.java#L378).
     - Large muckrakers are the only kind of robot that uses map symmetry.  Regarding map symmetry:
         - This year, map symmetry was much more difficult to use than it was last year.  That's because robots are not given the coordinates of the edges of the map in this year's game.  Instead, robots must discover the edges of the map and communicate the coordinates using flags.
         - Muckrakers and politicians use flags to communicate map edges to the home EC.  Then the home EC broadcasts the map edges regularly.
         - If a large muckraker knows 3 of the 4 map edges, it will move toward the unknown map edge.
-        - Since large muckrakers are only built by ECs that have built slanderers, the symmetric enemy EC is likely to have built slanderers as well.  So it made since to me, the developer, to make large muckrakers go for the symmetric enemy EC.
+        - Since the largest muckrakers are only built by ECs that have built slanderers, the symmetric enemy EC is likely to have built slanderers as well.  So it made since to me, the developer, to make large muckrakers go for the symmetric enemy EC.
 
 ### Slanderers
 - Slanderers move randomly at first.  When any friendly robot sees any enemy robot, the friendly robot uses its flag to communicate the location and conviction of the enemy to the home EC.  The EC remembers the nearest enemy robot to itself and it broadcasts a flag indicating the position and conviction of this enemy robot.  Then all slanderers from that EC move toward the opposite side of the EC from the enemy that was flagged.
