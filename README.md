@@ -1,6 +1,6 @@
 # battlecode2021_waffle
 
-This code plays the MIT Battlecode 2021 game.  For more about this, see the [MIT Battlecode site](https://battlecode.org/) and the [2021 game resources](https://2021.battlecode.org/resources).  This year's game was politics themed.
+This code plays the MIT Battlecode 2021 game.  For more about this, see the [MIT Battlecode site](https://battlecode.org/) and the [2021 final tournament](https://www.youtube.com/watch?v=8UnK0dASHjo&t=178).  This year's game was politics themed.
 
 This bot was known as "waffle" in the tournaments and on the ranklist.  This bot was a finalist, meaning it placed in the top 16 in the qualification tournament, marking the second year I was a finalist.  This will probably be my last year because only full-time students are eligible to win prizes in Battlecode and I expect to graduate soon.
 
